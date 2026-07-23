@@ -39,12 +39,9 @@ body{font-family:Poppins,system-ui,sans-serif;background:var(--mist);color:var(-
 
 label,.lab{display:block;font-size:11px;color:var(--slate);margin:0 0 6px;line-height:1.5}
 .req{color:var(--avocado)}
-input[type=text],input[type=email],input[type=tel],input[type=number]{width:100%;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:10px 11px;font-family:Poppins;font-size:13.5px;color:var(--black);margin:0 0 14px}
+input[type=text],input[type=email],input[type=tel]{width:100%;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:10px 11px;font-family:Poppins;font-size:13.5px;color:var(--black);margin:0 0 14px}
 input:focus{outline:none;border-color:var(--kiwi);box-shadow:0 0 0 3px rgba(149,193,43,.2)}
 input::placeholder{color:var(--sand)}
-input:disabled{background:var(--mist);color:var(--sand)}
-.err{border-color:#C0392B !important;box-shadow:0 0 0 3px rgba(192,57,43,.15) !important}
-.errbanner{background:#FBEAEA;border:1px solid #C0392B;color:#C0392B;border-radius:9px;padding:10px 12px;margin:0 0 14px;font-size:12px;line-height:1.5}
 .row{display:flex;gap:9px}
 .row>div{flex:1;min-width:0}
 
@@ -143,7 +140,7 @@ input:disabled{background:var(--mist);color:var(--sand)}
 <script>
 var lang = 'en';
 var step = 0;
-var state = { docs: {}, pin: false, confirmed: false, unmarried: false, accept: false, fields: {} };
+var state = { docs: {}, pin: false, confirmed: false };
 
 var T = {
   cont:      ['Continue', 'आगे बढ़ें'],
@@ -152,8 +149,7 @@ var T = {
   notes:     ['Design notes', 'डिज़ाइन नोट्स'],
   hide:      ['Hide notes', 'नोट्स छिपाएँ'],
   show:      ['Show notes', 'नोट्स दिखाएँ'],
-  stepof:    ['Step # of 8', 'चरण # / 8'],
-  errmsg:    ['Please check the highlighted fields before continuing.', 'कृपया आगे बढ़ने से पहले हाइलाइट किए गए फ़ील्ड जाँचें।']
+  stepof:    ['Step # of 8', 'चरण # / 8']
 };
 function t(k){ return T[k][lang === 'en' ? 0 : 1]; }
 
@@ -161,24 +157,16 @@ var STEPS = [
 {
   title: ['Verify your number', 'अपना नंबर सत्यापित करें'],
   html: function(){ return ''
-   + card('plain', ['Become a Foamico Authorised branded display and unlock the full reward stack — free pairs, marketing support and the International Foamico Vision Trip.',
-                    'फोमिको अधिकृत ब्रांडेड डिस्प्ले बनें और पूरा रिवॉर्ड पैकेज पाएं — मुफ़्त जोड़े, मार्केटिंग सहायता और इंटरनेशनल फोमिको विज़न ट्रिप।'])
+   + card('plain', ['This form enrols your shop as a Foamico Gallery. It asks for 8 pairs a month.',
+                    'यह फॉर्म आपकी दुकान को फोमिको गैलरी के रूप में दर्ज करता है। इसके लिए हर महीने 8 जोड़े चाहिए।'])
    + lab(['Your mobile number (WhatsApp)', 'आपका मोबाइल नंबर (व्हाट्सएप)'], true)
-   + txt('f-mobile', 'tel', '98765 43210')
+   + '<input type="tel" value="98765 43210">'
    + lab(['Enter the 6-digit code we sent', 'भेजा गया 6 अंकों का कोड डालें'], false)
-   + txt('f-otp', 'text', '419273', ' maxlength="6" style="letter-spacing:.5em"')
+   + '<input type="text" value="419273" maxlength="6" style="letter-spacing:.5em">'
    + card('', ['<strong>Number verified.</strong> This is the only code you will be asked for.',
                '<strong>नंबर सत्यापित हुआ।</strong> आपसे केवल यही कोड माँगा जाएगा।'])
    + lab(['Which language do you prefer?', 'आप कौन सी भाषा पसंद करेंगे?'], false)
-   + '<div class="chips" id="langChips">'
-   + '<span class="chip' + (lang === 'en' ? ' on' : '') + '" onclick="setLang(\'en\')">English</span>'
-   + '<span class="chip' + (lang === 'hi' ? ' on' : '') + '" onclick="setLang(\'hi\')">हिंदी</span>'
-   + '</div>';
-  },
-  validate: function(){
-   var errs = [];
-   if (digitsOnly(getVal('f-mobile')).length !== 10) errs.push('f-mobile');
-   return errs;
+   + chips('lang', [['English','English'],['हिंदी','हिंदी']], 1);
   },
   notes: [
    [['The only OTP in the form','फॉर्म में इकलौता ओटीपी'],
@@ -193,20 +181,13 @@ var STEPS = [
   title: ['Your business', 'आपका व्यापार'],
   html: function(){ return ''
    + lab(['GST number', 'जीएसटी नंबर'], true)
-   + txt('f-gst', 'text', '09ABCDE1234F2Z5', ' maxlength="15" style="letter-spacing:.06em;text-transform:uppercase"')
+   + '<input type="text" value="09ABCDE1234F2Z5" style="letter-spacing:.06em">'
    + card('', ['Proprietorship · registered 2016 · active<br>Hazratganj, Lucknow<br>Uttar Pradesh 226001',
                'प्रोपराइटरशिप · 2016 में पंजीकृत · सक्रिय<br>हज़रतगंज, लखनऊ<br>उत्तर प्रदेश 226001'])
    + lab(['Firm name', 'फर्म का नाम'], true)
-   + txt('f-firmname', 'text', 'Sunita Bedding House')
+   + '<input type="text" value="Sunita Bedding House">'
    + lab(['Name to print on your signboard', 'साइनबोर्ड पर छपने वाला नाम'], true)
-   + txt('f-signboard', 'text', 'Sunita Bedding House');
-  },
-  validate: function(){
-   var errs = [];
-   if (!/^[A-Za-z0-9]{15}$/.test(getVal('f-gst'))) errs.push('f-gst');
-   if (!getVal('f-firmname')) errs.push('f-firmname');
-   if (!getVal('f-signboard')) errs.push('f-signboard');
-   return errs;
+   + '<input type="text" value="Sunita Bedding House">';
   },
   notes: [
    [['One number, one screen','एक नंबर, एक स्क्रीन'],
@@ -221,40 +202,27 @@ var STEPS = [
   title: ['Owner details', 'मालिक का विवरण'],
   html: function(){ return ''
    + lab(["Owner's full name", 'मालिक का पूरा नाम'], true)
-   + txt('f-ownername', 'text', 'Ramesh Gupta')
-   + '<div class="row"><div>' + lab(['Date of birth','जन्म तिथि'], true) + txt('f-dob', 'text', '14 / 03 / 1974') + '</div>'
-   + '<div>' + lab(['Anniversary','सालगिरह'], !state.unmarried)
-     + txt('f-anniv', 'text', state.unmarried ? '' : '28 / 11 / 1999', state.unmarried ? ' disabled placeholder="—"' : '') + '</div></div>'
-   + '<div class="chips" id="marriedGroup" style="justify-content:center">'
-   + '<span class="chip' + (state.unmarried ? ' on' : '') + '" onclick="toggleMarried()">' + (lang==='en'?'Unmarried':'अविवाहित') + '</span></div>'
-   + '<div class="row"><div>' + lab(['Another number','दूसरा नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
-   + '<div>' + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com') + '</div></div>'
-   + lab(['Pincode', 'पिन कोड'], true)
-   + txt('f-pincode', 'text', '226001', ' maxlength="6"')
+   + '<input type="text" value="Ramesh Gupta">'
+   + '<div class="row"><div>' + lab(['Date of birth','जन्म तिथि'], true) + '<input type="text" value="14 / 03 / 1974"></div>'
+   + '<div>' + lab(['Anniversary','सालगिरह'], true) + '<input type="text" value="28 / 11 / 1999"></div></div>'
+   + chips('married', [[ 'Not married','विवाहित नहीं']], -1)
+   + '<div class="row"><div>' + lab(['Another number','दूसरा नंबर'], true) + '<input type="tel" value="99887 76655"></div>'
+   + '<div>' + lab(['Email','ईमेल'], false) + '<input type="email" placeholder="' + (lang==='en'?'Optional':'वैकल्पिक') + '"></div></div>'
+   + lab(['Home address — PIN code', 'घर का पता — पिन कोड'], true)
+   + '<input type="text" value="226001" maxlength="6">'
    + card('', ['Lucknow · Uttar Pradesh', 'लखनऊ · उत्तर प्रदेश'])
-   + lab(['Firm Address', 'फर्म का पता'], true)
-   + txt('f-address', 'text', '14/3 Rana Pratap Marg')
+   + lab(['House and street', 'मकान और गली'], true)
+   + '<input type="text" value="14/3 Rana Pratap Marg">'
    + lab(['Landmark', 'पास की पहचान'], true)
-   + txt('f-landmark', 'text', 'Behind Sahara Ganj');
-  },
-  validate: function(){
-   var errs = [];
-   if (!getVal('f-ownername')) errs.push('f-ownername');
-   if (!getVal('f-dob')) errs.push('f-dob');
-   if (!state.unmarried && !getVal('f-anniv')) errs.push('f-anniv');
-   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(getVal('f-email'))) errs.push('f-email');
-   if (digitsOnly(getVal('f-pincode')).length !== 6) errs.push('f-pincode');
-   if (!getVal('f-address')) errs.push('f-address');
-   if (!getVal('f-landmark')) errs.push('f-landmark');
-   return errs;
+   + '<input type="text" value="Behind Sahara Ganj">';
   },
   notes: [
    [['A compulsory step','अनिवार्य चरण'],
-    ['Nothing advances until this is complete. Owner name, date of birth, email, pincode, firm address and landmark are all required — only the anniversary and the second number are not.',
-     'जब तक यह पूरा न हो, आगे नहीं बढ़ा जा सकता। मालिक का नाम, जन्म तिथि, ईमेल, पिन कोड, फर्म का पता और पास की पहचान — सब आवश्यक हैं — केवल सालगिरह और दूसरा नंबर आवश्यक नहीं।']],
-   [['Why "Unmarried" exists','"अविवाहित" क्यों है'],
-    ['Without an escape, a compulsory anniversary traps every unmarried or widowed dealer — and your salesperson will simply invent a date to get past the screen. Ticking it removes the anniversary requirement entirely.',
-     'बिना विकल्प के, अनिवार्य सालगिरह हर अविवाहित या विधुर डीलर को रोक देगी — और आपका सेल्समैन आगे बढ़ने के लिए कोई तारीख गढ़ लेगा। इसे टिक करने से सालगिरह की आवश्यकता पूरी तरह हट जाती है।']],
+    ['Nothing advances until this is complete. Owner name, both dates, second number and the full home address are all required.',
+     'जब तक यह पूरा न हो, आगे नहीं बढ़ा जा सकता। मालिक का नाम, दोनों तारीखें, दूसरा नंबर और पूरा घर का पता — सब आवश्यक हैं।']],
+   [['Why "not married" exists','"विवाहित नहीं" क्यों है'],
+    ['Without an escape, a compulsory anniversary traps every unmarried or widowed dealer — and your salesperson will simply invent a date to get past the screen.',
+     'बिना विकल्प के, अनिवार्य सालगिरह हर अविवाहित या विधुर डीलर को रोक देगी — और आपका सेल्समैन आगे बढ़ने के लिए कोई तारीख गढ़ लेगा।']],
    [['Two dates, no family','दो तारीखें, परिवार नहीं'],
     ['The owner only. Nothing about spouse or children — that data carries real obligations under the DPDP Act and earns you nothing.',
      'केवल मालिक की। पति/पत्नी या बच्चों की कोई जानकारी नहीं — उस डेटा पर डीपीडीपी कानून के तहत असली ज़िम्मेदारी आती है और लाभ कुछ नहीं।']]
@@ -269,59 +237,47 @@ var STEPS = [
                   : (lang==='en' ? 'Drop a pin, or paste a Maps link' : 'पिन लगाएँ, या मैप्स लिंक पेस्ट करें')) + '</div>'
    + (state.pin ? card('', ['Open 10am to 8:30pm · visit GPS and time recorded',
                             'सुबह 10 से रात 8:30 तक खुली · दौरे का जीपीएस और समय दर्ज']) : '')
+   + lab(['Weekly closing day', 'साप्ताहिक बंदी का दिन'], false)
+   + chips('close', [['Sunday','रविवार'],['Tuesday','मंगलवार'],['Other','अन्य'],['None','कोई नहीं']], 1)
    + lab(['Size of your shop', 'दुकान का आकार'], false)
    + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], 1)
-   + lab(['How many Display Mattresses do you require?', 'आपको कितने डिस्प्ले गद्दे चाहिए?'], true)
-   + txt('f-dispcount', 'number', '7', ' min="0" step="1"')
-   + lab(['How many mattress salesperson work here?', 'यहाँ कितने गद्दा सेल्सपर्सन काम करते हैं?'], true)
-   + txt('f-staff', 'number', '2', ' min="0" step="1"');
-  },
-  validate: function(){
-   var errs = [];
-   if (!/^\d+$/.test(getVal('f-dispcount'))) errs.push('f-dispcount');
-   if (!/^\d+$/.test(getVal('f-staff'))) errs.push('f-staff');
-   return errs;
+   + lab(['Can you display 7 mattresses?', 'क्या आप 7 गद्दे प्रदर्शित कर सकते हैं?'], false)
+   + chips('disp', [['Yes','हाँ'],['Partly','आंशिक'],['No','नहीं']], 0)
+   + lab(['How many mattress sellers work here?', 'यहाँ कितने गद्दा विक्रेता काम करते हैं?'], false)
+   + chips('staff', [['0','0'],['1','1'],['2','2'],['3–5','3–5'],['5+','5+']], 2);
   },
   notes: [
    [['Mattress sellers, stated plainly','गद्दा विक्रेता, साफ़ शब्दों में'],
     ['Not "sales staff". A furniture shop with six people may have two who sell mattresses, and those two are who your training must reach.',
      '"सेल्स स्टाफ" नहीं। छह लोगों वाली फर्नीचर दुकान में शायद दो ही गद्दे बेचते हों, और आपकी ट्रेनिंग उन्हीं दो तक पहुँचनी चाहिए।']],
    [['The two answers that cost money','दो जवाब जो पैसे से जुड़े हैं'],
-    ['Display space gates how many mattresses you can actually stock — the single most expensive thing you hand over.',
-     'प्रदर्शन की जगह तय करती है कि आप वास्तव में कितने गद्दे रख सकते हैं — जो आप सबसे महँगी चीज़ देते हैं।']]
+    ['Closing day is the biggest single cause of failed kit deliveries. Display space gates seven mattresses — the most expensive thing you hand over.',
+     'बंदी का दिन किट डिलीवरी फेल होने का सबसे बड़ा कारण है। प्रदर्शन की जगह सात गद्दों को तय करती है — जो आप सबसे महँगी चीज़ देते हैं।']]
   ]
 },
 {
   title: ['Your trade', 'आपका कारोबार'],
   html: function(){ return ''
-   + lab(['Years in the mattress trade', 'गद्दे के कारोबार में कितने साल'], true)
-   + txt('f-years', 'number', '6', ' min="0" step="1"')
+   + lab(['Years in the mattress trade', 'गद्दे के कारोबार में कितने साल'], false)
+   + chips('yrs', [['Under 2','2 से कम'],['2–5','2–5'],['5–10','5–10'],['10+','10+']], 2)
    + lab(['Which brands do you keep?', 'आप कौन से ब्रांड रखते हैं?'], false)
    + chips('brands', [['Sleepwell','स्लीपवेल'],['Kurlon','कुर्लऑन'],['Duroflex','ड्यूरोफ्लेक्स'],['Peps','पेप्स'],
                       ['Springfit','स्प्रिंगफिट'],['Centuary','सेंचुरी'],['Nilkamal','नीलकमल'],['Wakefit','वेकफिट'],
                       ['Sleepyhead','स्लीपीहेड'],['Coirfit','कॉयरफिट'],['Repose','रिपोज़'],['Restolex','रेस्टोलेक्स'],
                       ['King Koil','किंग कॉयल'],['Springwel','स्प्रिंगवेल'],['Livpure','लिवप्योर'],['Emma','एम्मा'],
                       ['Boston','बोस्टन'],['Local','लोकल']], -2)
-   + lab(['Any other brand?', 'कोई अन्य ब्रांड?'], false)
-   + txt('f-brandsother', 'text', '', ' placeholder="' + (lang==='en' ? 'Name of others' : 'अन्य का नाम') + '"')
    + lab(['Mattresses sold in a month', 'महीने में बिकने वाले गद्दे'], false)
    + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], 1)
-   + lab(['How many Foamico and VedaSleep mattresses do you sell in a month?', 'आप महीने में कितने फोमिको और वेदस्लीप गद्दे बेचते हैं?'], true)
-   + txt('f-fv', 'number', '4', ' min="0" step="1"');
-  },
-  validate: function(){
-   var errs = [];
-   if (!/^\d+$/.test(getVal('f-years'))) errs.push('f-years');
-   if (!/^\d+$/.test(getVal('f-fv'))) errs.push('f-fv');
-   return errs;
+   + lab(['Foamico and VedaSleep sold today', 'आज फोमिको और वेदस्लीप की बिक्री'], true)
+   + '<input type="text" value="' + (lang==='en' ? '4 pairs a month' : '4 जोड़े प्रति माह') + '">';
   },
   notes: [
    [['Eighteen brands','अठारह ब्रांड'],
     ['A tick is honest where a blank line invites a shrug. Across 600 shops this becomes the only shelf-share map you will ever own.',
      'खाली लाइन पर कंधे उचकाए जाते हैं, टिक पर सच बताया जाता है। 600 दुकानों में यही आपका इकलौता शेल्फ-शेयर नक्शा बनेगा।']],
    [['The line you cannot cut','जिस पंक्ति को हटाया नहीं जा सकता'],
-    ['Four pairs a month. Without this baseline you finish the year with 600 dealers and no way to prove average monthly billing moved.',
-     'महीने में चार जोड़े। इस आधार रेखा के बिना आप साल के अंत में 600 डीलरों के साथ खड़े होंगे, पर यह साबित नहीं कर पाएँगे कि औसत बिलिंग बढ़ी।']]
+    ['Four pairs today. Without this baseline you finish the year with 600 dealers and no way to prove average monthly billing moved.',
+     'आज चार जोड़े। इस आधार रेखा के बिना आप साल के अंत में 600 डीलरों के साथ खड़े होंगे, पर यह साबित नहीं कर पाएँगे कि औसत बिलिंग बढ़ी।']]
   ]
 },
 {
@@ -336,14 +292,8 @@ var STEPS = [
    + doc('disp',  ['Your mattress display', 'आपका गद्दा प्रदर्शन'])
    + doc('own',   ["Owner's photo", 'मालिक की फोटो'])
    + '<p style="font-size:11px;color:var(--sand);line-height:1.6;margin-top:10px">'
-   + (lang==='en' ? 'Tap a card to take a new photo or choose one from your gallery or files. All six photos are required.'
-                  : 'नई फोटो लेने या गैलरी/फ़ाइलों से चुनने के लिए कार्ड पर टैप करें। सभी छह फोटो ज़रूरी हैं।') + '</p>';
-  },
-  validate: function(){
-   var keys = ['pan','chq','front','in','disp','own'];
-   var errs = [];
-   for (var i = 0; i < keys.length; i++){ if (!state.docs[keys[i]]) errs.push('doc-' + keys[i]); }
-   return errs;
+   + (lang==='en' ? 'Camera only. Photographs cannot be picked from the gallery.'
+                  : 'केवल कैमरा। गैलरी से फोटो नहीं चुनी जा सकती।') + '</p>';
   },
   notes: [
    [['Late, and for a reason','देर से, और वजह से'],
@@ -352,9 +302,9 @@ var STEPS = [
    [['The cheque does double duty','चेक दोहरा काम करता है'],
     ['One photograph fills bank name, account number, IFSC and branch, and validates against the bank register on the spot.',
      'एक फोटो से बैंक का नाम, खाता संख्या, आईएफएससी और शाखा भर जाते हैं, और मौके पर ही बैंक रजिस्टर से जाँच हो जाती है।']],
-   [['Camera or gallery, dealer\'s choice','कैमरा या गैलरी, डीलर की मर्ज़ी'],
-    ['Some shops are photographed ahead of the visit, others on the spot. Either way, all six are required before the step will let him through.',
-     'कुछ दुकानों की फोटो दौरे से पहले ली जाती है, कुछ की मौके पर। दोनों ही स्थिति में, सभी छह फोटो ज़रूरी हैं, तभी यह चरण आगे बढ़ने देगा।']]
+   [['Camera only','केवल कैमरा'],
+    ['A photograph that can be forwarded is a photograph that can be borrowed from another dealer.',
+     'जो फोटो फॉरवर्ड हो सकती है, वह किसी दूसरे डीलर से उधार भी ली जा सकती है।']]
   ]
 },
 {
@@ -367,20 +317,18 @@ var STEPS = [
    + card('', [
       'In return, from day one<br>· 15 branding and display items<br>· 7 display mattresses within 14 days<br>· Free Duro Classic pairs at each slab<br>· 20 premium pairs earns the Vision Trip',
       'बदले में, पहले दिन से<br>· 15 ब्रांडिंग और डिस्प्ले सामग्री<br>· 14 दिन में 7 डिस्प्ले गद्दे<br>· हर स्लैब पर मुफ़्त ड्यूरो क्लासिक जोड़े<br>· 20 प्रीमियम जोड़े पर विज़न ट्रिप'])
-   + '<div class="chips" data-group="accept">'
-   + '<span class="chip' + (state.accept ? ' on' : '') + '" id="acceptChip" onclick="toggleAccept()">'
-   + (lang==='en' ? 'I understand and accept' : 'मैं समझता हूँ और स्वीकार करता हूँ') + '</span></div>';
-  },
-  validate: function(){
-   return state.accept ? [] : ['acceptChip'];
+   + lab(['Your target this quarter', 'इस तिमाही का आपका लक्ष्य'], false)
+   + card('plain', ['Joining in May, so Q2 is <strong>16 pairs</strong>, not 24. Calculated for you.',
+                    'मई में जुड़ रहे हैं, इसलिए दूसरी तिमाही <strong>16 जोड़े</strong> है, 24 नहीं। यह अपने आप निकाला गया है।'])
+   + chips('accept', [['I understand and accept','मैं समझता हूँ और स्वीकार करता हूँ']], -1);
   },
   notes: [
    [['Second-last, deliberately','जानबूझकर दूसरे नंबर पर आख़िरी से'],
     ['The terms are the last thing the dealer reads before he confirms. Acceptance and confirmation sit one screen apart, which ties the consent far more tightly.',
      'पुष्टि से ठीक पहले डीलर यही शर्तें पढ़ता है। स्वीकृति और पुष्टि एक ही स्क्रीन की दूरी पर हैं, जिससे सहमति कहीं अधिक मज़बूत बनती है।']],
    [['What it replaced','इसने किसकी जगह ली'],
-    ['Eight handwritten quarterly boxes that no dealer took seriously and no system could enforce. One tier, one number, easy to remember.',
-     'आठ हस्तलिखित तिमाही खाने, जिन्हें न कोई डीलर गंभीरता से लेता था न कोई सिस्टम लागू कर सकता था। अब एक स्तर, एक संख्या, याद रखने में आसान।']]
+    ['Eight handwritten quarterly boxes that no dealer took seriously and no system could enforce. One tier, one number, pro-rated automatically.',
+     'आठ हस्तलिखित तिमाही खाने, जिन्हें न कोई डीलर गंभीरता से लेता था न कोई सिस्टम लागू कर सकता था। अब एक स्तर, एक संख्या, अपने आप अनुपात में।']]
   ]
 },
 {
@@ -432,27 +380,9 @@ function chips(group, items, selected){
 }
 function doc(key, pair){
   var done = !!state.docs[key];
-  return '<div class="doc' + (done ? ' done' : '') + '" id="doc-' + key + '" onclick="triggerShoot(\'' + key + '\')">'
+  return '<div class="doc' + (done ? ' done' : '') + '" onclick="shoot(\'' + key + '\')">'
        + '<div class="icn"></div>' + pair[lang==='en'?0:1]
-       + '<span class="tick">' + (done ? '✓' : (lang==='en' ? 'Add photo' : 'फोटो जोड़ें')) + '</span>'
-       + '<input type="file" accept="image/*" id="file-' + key + '" style="display:none" onclick="event.stopPropagation()" onchange="fileChosen(\'' + key + '\')">'
-       + '</div>';
-}
-function escAttr(s){
-  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-}
-function txt(id, type, dflt, extra){
-  var v = state.fields.hasOwnProperty(id) ? state.fields[id] : dflt;
-  return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '" oninput="onField(this)"' + (extra || '') + '>';
-}
-function getVal(id){
-  var el = document.getElementById(id);
-  return el ? el.value.trim() : '';
-}
-function digitsOnly(s){ return s.replace(/\D/g, ''); }
-function onField(el){
-  state.fields[el.id] = el.value;
-  el.classList.remove('err');
+       + '<span class="tick">' + (done ? '✓' : (lang==='en' ? 'Take photo' : 'फोटो लें')) + '</span></div>';
 }
 
 function pickChip(el, multi){
@@ -463,26 +393,8 @@ function pickChip(el, multi){
   if (!(wasOn && sibs.length === 1)) el.classList.add('on');
 }
 function dropPin(){ state.pin = true; render(); }
-function triggerShoot(key){ document.getElementById('file-' + key).click(); }
-function fileChosen(key){
-  var inp = document.getElementById('file-' + key);
-  state.docs[key] = !!(inp.files && inp.files.length);
-  render();
-}
+function shoot(key){ state.docs[key] = !state.docs[key]; render(); }
 function toggleConfirm(){ state.confirmed = !state.confirmed; render(); }
-function toggleMarried(){ state.unmarried = !state.unmarried; render(); }
-function toggleAccept(){ state.accept = !state.accept; render(); }
-
-function showBanner(){
-  var b = document.getElementById('errbanner');
-  if (!b) return;
-  b.textContent = t('errmsg');
-  b.classList.remove('hidden');
-}
-function hideBanner(){
-  var b = document.getElementById('errbanner');
-  if (b) b.classList.add('hidden');
-}
 
 function render(){
   var s = STEPS[step];
@@ -497,7 +409,7 @@ function render(){
     : '<button class="cta" onclick="next()">' + t('cont') + '</button>';
   var back = step > 0 ? '<button class="back" onclick="prev()">← ' + t('back') + '</button>' : '';
 
-  document.getElementById('body').innerHTML = '<div id="errbanner" class="errbanner hidden"></div>' + s.html() + btn + back;
+  document.getElementById('body').innerHTML = s.html() + btn + back;
 
   var n = '';
   for (var i = 0; i < s.notes.length; i++){
@@ -508,30 +420,10 @@ function render(){
   document.getElementById('ntitle').textContent = t('notes');
 }
 
-function next(){
-  var s = STEPS[step];
-  var body = document.getElementById('body');
-  var prevErrs = body.querySelectorAll('.err');
-  for (var i = 0; i < prevErrs.length; i++) prevErrs[i].classList.remove('err');
-
-  var errs = s.validate ? s.validate() : [];
-  if (errs.length){
-    for (var j = 0; j < errs.length; j++){
-      var el = document.getElementById(errs[j]);
-      if (el) el.classList.add('err');
-    }
-    showBanner();
-    var first = document.getElementById(errs[0]);
-    if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    return;
-  }
-  hideBanner();
-  if (step < STEPS.length - 1){ step++; render(); window.scrollTo(0,0); }
-}
+function next(){ if (step < STEPS.length - 1){ step++; render(); window.scrollTo(0,0); } }
 function prev(){ if (step > 0){ step--; render(); window.scrollTo(0,0); } }
 
 function finish(){
-  if (!state.confirmed) return;
   document.getElementById('stepno').textContent = lang==='en' ? 'Enrolled' : 'दर्ज हुआ';
   document.getElementById('steptitle').textContent = lang==='en' ? 'Welcome to Foamico Gallery' : 'फोमिको गैलरी में स्वागत है';
   document.getElementById('fill').style.width = '100%';
@@ -558,7 +450,7 @@ function finish(){
       ? 'He has a reference number, a written record of what he agreed to, and a stated date for what arrives next. None of which he had with the paper form.'
       : 'उसके पास एक संदर्भ संख्या है, जो उसने स्वीकार किया उसका लिखित रिकॉर्ड है, और अगली चीज़ कब आएगी उसकी तय तारीख है। कागज़ी फॉर्म में इनमें से कुछ नहीं था।') + '</p>';
 }
-function restart(){ step = 0; state = { docs:{}, pin:false, confirmed:false, unmarried:false, accept:false, fields:{} }; render(); }
+function restart(){ step = 0; state = { docs:{}, pin:false, confirmed:false }; render(); }
 
 function setLang(l){
   lang = l;
