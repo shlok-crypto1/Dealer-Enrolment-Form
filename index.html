@@ -20,12 +20,6 @@ body{font-family:Poppins,system-ui,sans-serif;background:var(--mist);color:var(-
 .mark{font-family:Montserrat;font-weight:800;font-size:17px;color:var(--egg);letter-spacing:.14em}
 .mark span{color:var(--kiwi)}
 .kick{font-size:10px;letter-spacing:.18em;color:var(--kiwi);font-family:Montserrat;font-weight:500;text-transform:uppercase}
-.spacer{margin-left:auto}
-.tgl{display:flex;border:1px solid #3d3d3d;border-radius:999px;overflow:hidden}
-.tgl button{background:none;border:0;color:var(--sand);font-family:Poppins;font-size:12px;padding:6px 14px;cursor:pointer}
-.tgl button.on{background:var(--kiwi);color:var(--black)}
-.ghost{background:none;border:1px solid #3d3d3d;color:var(--sand);font-family:Poppins;font-size:12px;padding:6px 14px;border-radius:999px;cursor:pointer}
-.ghost:hover{border-color:var(--kiwi);color:var(--kiwi)}
 
 .wrap{max-width:900px;margin:0 auto;padding:34px 20px 60px;display:flex;gap:34px;align-items:flex-start;justify-content:center}
 
@@ -95,10 +89,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
 .cta:disabled{background:var(--lgrey);color:var(--sand);cursor:not-allowed}
 .back{background:none;border:0;color:var(--slate);font-family:Poppins;font-size:12px;cursor:pointer;padding:10px 0 0;display:block;margin:0 auto}
 
-.notes{flex:1;min-width:0;max-width:330px}
-.notes h3{font-family:Montserrat;font-weight:700;font-size:13px;margin:0 0 14px;letter-spacing:.02em}
-.nk{font-size:10px;letter-spacing:.14em;color:var(--sand);text-transform:uppercase;font-family:Montserrat;font-weight:500;margin:0 0 4px}
-.nv{font-size:13px;color:var(--slate);line-height:1.65;margin:0 0 18px}
 .hidden{display:none}
 
 .done-wrap{text-align:center;padding:26px 6px}
@@ -113,7 +103,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
 
 @media (max-width:760px){
   .wrap{flex-direction:column;align-items:center;gap:24px}
-  .notes{max-width:330px;width:100%}
 }
 </style>
 </head>
@@ -122,12 +111,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
 <div class="topbar">
   <div class="mark">FOAMICO<span>.</span></div>
   <div class="kick">Gallery enrolment · prototype</div>
-  <div class="spacer"></div>
-  <div class="tgl">
-    <button id="l-en" class="on" onclick="setLang('en')">English</button>
-    <button id="l-hi" onclick="setLang('hi')">हिंदी</button>
-  </div>
-  <button class="ghost" onclick="toggleNotes()" id="notebtn">Hide notes</button>
 </div>
 
 <div class="wrap">
@@ -138,11 +121,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
     <div class="track"><div class="fill" id="fill"></div></div>
   </div>
   <div class="dbody" id="body"></div>
-</div>
-
-<div class="notes" id="notes">
-  <h3 id="ntitle">Design notes</h3>
-  <div id="nbody"></div>
 </div>
 </div>
 
@@ -157,9 +135,6 @@ var T = {
   cont:      ['Continue', 'आगे बढ़ें'],
   back:      ['Back', 'पीछे'],
   req:       [' · required', ' · आवश्यक'],
-  notes:     ['Design notes', 'डिज़ाइन नोट्स'],
-  hide:      ['Hide notes', 'नोट्स छिपाएँ'],
-  show:      ['Show notes', 'नोट्स दिखाएँ'],
   stepof:    ['Step # of 8', 'चरण # / 8'],
   errmsg:    ['Please check the highlighted fields before continuing.', 'कृपया आगे बढ़ने से पहले हाइलाइट किए गए फ़ील्ड जाँचें।']
 };
@@ -187,15 +162,7 @@ var STEPS = [
    var errs = [];
    if (digitsOnly(getVal('f-mobile')).length !== 10) errs.push('f-mobile');
    return errs;
-  },
-  notes: [
-   [['The only OTP in the form','फॉर्म में इकलौता ओटीपी'],
-    ['It opens a verified session that stays open through all eight steps. The dealer never looks at his SMS twice.',
-     'यह एक सत्यापित सत्र खोलता है जो आठों चरणों तक चलता है। डीलर को दोबारा एसएमएस नहीं देखना पड़ता।']],
-   [['The line at the top','ऊपर की पंक्ति'],
-    ['The commitment sits at step 7, so the dealer must not meet it for the first time after shooting six documents. One sentence here removes the surprise.',
-     'प्रतिबद्धता चरण 7 पर है, इसलिए डीलर को छह दस्तावेज़ों के बाद पहली बार यह पता नहीं चलना चाहिए। यहाँ एक वाक्य वह आश्चर्य हटा देता है।']]
-  ]
+  }
 },
 {
   title: ['Your business', 'आपका व्यापार'],
@@ -215,15 +182,7 @@ var STEPS = [
    if (!getVal('f-firmname')) errs.push('f-firmname');
    if (!getVal('f-signboard')) errs.push('f-signboard');
    return errs;
-  },
-  notes: [
-   [['One number, one screen','एक नंबर, एक स्क्रीन'],
-    ['Fifteen characters fill the constitution, full address, PIN, state and registration year. None of it can be misspelt because none of it is typed.',
-     'पंद्रह अक्षर संविधान, पूरा पता, पिन, राज्य और पंजीकरण वर्ष भर देते हैं। कुछ भी टाइप नहीं होता, इसलिए कुछ भी गलत नहीं लिखा जा सकता।']],
-   [['Why the signboard name is separate','साइनबोर्ड का नाम अलग क्यों'],
-    ['Marketing prints this one. It is usually shorter than the registered name, and getting it wrong wastes a board.',
-     'मार्केटिंग इसी को छापती है। यह आमतौर पर पंजीकृत नाम से छोटा होता है, और गलती से एक बोर्ड बर्बाद होता है।']]
-  ]
+  }
 },
 {
   title: ['Owner details', 'मालिक का विवरण'],
@@ -255,24 +214,13 @@ var STEPS = [
    if (!getVal('f-address')) errs.push('f-address');
    if (!getVal('f-landmark')) errs.push('f-landmark');
    return errs;
-  },
-  notes: [
-   [['A compulsory step','अनिवार्य चरण'],
-    ['Nothing advances until this is complete. Owner name, date of birth, email, pincode, firm address and landmark are all required — only the anniversary and the alternate number are not.',
-     'जब तक यह पूरा न हो, आगे नहीं बढ़ा जा सकता। मालिक का नाम, जन्म तिथि, ईमेल, पिन कोड, फर्म का पता और पास की पहचान — सब आवश्यक हैं — केवल सालगिरह और वैकल्पिक नंबर आवश्यक नहीं।']],
-   [['Why "Unmarried" exists','"अविवाहित" क्यों है'],
-    ['Without an escape, a compulsory anniversary traps every unmarried or widowed dealer — and your salesperson will simply invent a date to get past the screen. Ticking it removes the anniversary requirement entirely.',
-     'बिना विकल्प के, अनिवार्य सालगिरह हर अविवाहित या विधुर डीलर को रोक देगी — और आपका सेल्समैन आगे बढ़ने के लिए कोई तारीख गढ़ लेगा। इसे टिक करने से सालगिरह की आवश्यकता पूरी तरह हट जाती है।']],
-   [['Two dates, no family','दो तारीखें, परिवार नहीं'],
-    ['The owner only. Nothing about spouse or children — that data carries real obligations under the DPDP Act and earns you nothing.',
-     'केवल मालिक की। पति/पत्नी या बच्चों की कोई जानकारी नहीं — उस डेटा पर डीपीडीपी कानून के तहत असली ज़िम्मेदारी आती है और लाभ कुछ नहीं।']]
-  ]
+  }
 },
 {
   title: ['Your shop', 'आपकी दुकान'],
   html: function(){ return ''
    + lab(['Shop location', 'दुकान का स्थान'], true)
-   + '<div class="pin' + (state.pin ? ' done' : '') + '" onclick="dropPin()">'
+   + '<div class="pin' + (state.pin ? ' done' : '') + '" id="shopPin" onclick="dropPin()">'
      + (state.pin ? (lang==='en' ? 'Pin saved · 26.8467, 80.9462' : 'पिन सहेजा गया · 26.8467, 80.9462')
                   : (lang==='en' ? 'Drop a pin, or paste a Maps link' : 'पिन लगाएँ, या मैप्स लिंक पेस्ट करें')) + '</div>'
    + (state.pin ? card('', ['Open 10am to 8:30pm · visit GPS and time recorded',
@@ -286,19 +234,12 @@ var STEPS = [
   },
   validate: function(){
    var errs = [];
+   if (!state.pin) errs.push('shopPin');
    var disp = getVal('f-dispcount');
    if (!/^\d+$/.test(disp) || parseInt(disp, 10) > 7) errs.push('f-dispcount');
    if (!/^\d+$/.test(getVal('f-staff'))) errs.push('f-staff');
    return errs;
-  },
-  notes: [
-   [['Mattress sellers, stated plainly','गद्दा विक्रेता, साफ़ शब्दों में'],
-    ['Not "sales staff". A furniture shop with six people may have two who sell mattresses, and those two are who your training must reach.',
-     '"सेल्स स्टाफ" नहीं। छह लोगों वाली फर्नीचर दुकान में शायद दो ही गद्दे बेचते हों, और आपकी ट्रेनिंग उन्हीं दो तक पहुँचनी चाहिए।']],
-   [['The two answers that cost money','दो जवाब जो पैसे से जुड़े हैं'],
-    ['Display space gates how many mattresses you can actually stock — the single most expensive thing you hand over.',
-     'प्रदर्शन की जगह तय करती है कि आप वास्तव में कितने गद्दे रख सकते हैं — जो आप सबसे महँगी चीज़ देते हैं।']]
-  ]
+  }
 },
 {
   title: ['Your trade', 'आपका कारोबार'],
@@ -323,15 +264,7 @@ var STEPS = [
    if (!/^\d+$/.test(getVal('f-years'))) errs.push('f-years');
    if (!/^\d+$/.test(getVal('f-fv'))) errs.push('f-fv');
    return errs;
-  },
-  notes: [
-   [['Eighteen brands','अठारह ब्रांड'],
-    ['A tick is honest where a blank line invites a shrug. Across 600 shops this becomes the only shelf-share map you will ever own.',
-     'खाली लाइन पर कंधे उचकाए जाते हैं, टिक पर सच बताया जाता है। 600 दुकानों में यही आपका इकलौता शेल्फ-शेयर नक्शा बनेगा।']],
-   [['The line you cannot cut','जिस पंक्ति को हटाया नहीं जा सकता'],
-    ['Four pairs a month. Without this baseline you finish the year with 600 dealers and no way to prove average monthly billing moved.',
-     'महीने में चार जोड़े। इस आधार रेखा के बिना आप साल के अंत में 600 डीलरों के साथ खड़े होंगे, पर यह साबित नहीं कर पाएँगे कि औसत बिलिंग बढ़ी।']]
-  ]
+  }
 },
 {
   title: ['Documents', 'दस्तावेज़'],
@@ -353,18 +286,7 @@ var STEPS = [
    var errs = [];
    for (var i = 0; i < keys.length; i++){ if (!state.docs[keys[i]]) errs.push('doc-' + keys[i]); }
    return errs;
-  },
-  notes: [
-   [['Late, and for a reason','देर से, और वजह से'],
-    ['Documents are the highest-friction step, so they sit after the dealer has already invested five screens. He is far likelier to finish here than at step 2.',
-     'दस्तावेज़ सबसे कठिन चरण हैं, इसलिए ये तब आते हैं जब डीलर पाँच स्क्रीन लगा चुका हो। यहाँ वह चरण 2 की तुलना में कहीं ज़्यादा पूरा करेगा।']],
-   [['The cheque does double duty','चेक दोहरा काम करता है'],
-    ['One photograph fills bank name, account number, IFSC and branch, and validates against the bank register on the spot.',
-     'एक फोटो से बैंक का नाम, खाता संख्या, आईएफएससी और शाखा भर जाते हैं, और मौके पर ही बैंक रजिस्टर से जाँच हो जाती है।']],
-   [['Camera or gallery, dealer\'s choice','कैमरा या गैलरी, डीलर की मर्ज़ी'],
-    ['Some shops are photographed ahead of the visit, others on the spot. Either way, all six are required before the step will let him through.',
-     'कुछ दुकानों की फोटो दौरे से पहले ली जाती है, कुछ की मौके पर। दोनों ही स्थिति में, सभी छह फोटो ज़रूरी हैं, तभी यह चरण आगे बढ़ने देगा।']]
-  ]
+  }
 },
 {
   title: ['The Gallery commitment', 'गैलरी प्रतिबद्धता'],
@@ -377,27 +299,19 @@ var STEPS = [
    + rwd('1', ['Exclusive Marketing Support', 'विशेष मार्केटिंग सहायता'],
               ['Get 15 branding kit items and 7 display mattresses within two weeks of enrolment.',
                'नामांकन के दो सप्ताह के भीतर 15 ब्रांडिंग किट सामग्री और 7 डिस्प्ले गद्दे पाएं।'])
-   + rwd('2', ['Qualify for the Vision Trip', 'विज़न ट्रिप के लिए योग्य बनें'],
-              ['Achieve 20 premium mattress pairs across Sova Natural, Ultima Natural, and Riva during the financial year to earn an exclusive trip with the Managing Director and senior leadership team.',
-               'वित्तीय वर्ष के दौरान सोवा नेचुरल, अल्टिमा नेचुरल और रीवा में 20 प्रीमियम गद्दे के जोड़े हासिल करें और प्रबंध निदेशक व वरिष्ठ नेतृत्व टीम के साथ एक विशेष यात्रा अर्जित करें।'])
-   + rwd('3', ['Earn free Duro Classic pairs', 'मुफ़्त ड्यूरो क्लासिक जोड़े पाएं'],
+   + rwd('2', ['Earn free Duro Classic pairs', 'मुफ़्त ड्यूरो क्लासिक जोड़े पाएं'],
               ['Achieve the per-category slab and receive a free pair of Duro Classic every month.',
                'प्रति-श्रेणी स्लैब हासिल करें और हर महीने ड्यूरो क्लासिक का एक मुफ़्त जोड़ा पाएं।'])
+   + rwd('3', ['Qualify for the Vision Trip', 'विज़न ट्रिप के लिए योग्य बनें'],
+              ['Achieve 20 premium mattress pairs across Sova Natural, Ultima Natural, and Riva during the financial year to earn an exclusive trip with the Managing Director and senior leadership team.',
+               'वित्तीय वर्ष के दौरान सोवा नेचुरल, अल्टिमा नेचुरल और रीवा में 20 प्रीमियम गद्दे के जोड़े हासिल करें और प्रबंध निदेशक व वरिष्ठ नेतृत्व टीम के साथ एक विशेष यात्रा अर्जित करें।'])
    + '<div class="chips" data-group="accept" style="justify-content:center">'
    + '<span class="chip' + (state.accept ? ' on' : '') + '" id="acceptChip" onclick="toggleAccept()">'
    + (lang==='en' ? 'I accept' : 'मैं स्वीकार करता हूँ') + '</span></div>';
   },
   validate: function(){
    return state.accept ? [] : ['acceptChip'];
-  },
-  notes: [
-   [['Second-last, deliberately','जानबूझकर दूसरे नंबर पर आख़िरी से'],
-    ['The terms are the last thing the dealer reads before he confirms. Acceptance and confirmation sit one screen apart, which ties the consent far more tightly.',
-     'पुष्टि से ठीक पहले डीलर यही शर्तें पढ़ता है। स्वीकृति और पुष्टि एक ही स्क्रीन की दूरी पर हैं, जिससे सहमति कहीं अधिक मज़बूत बनती है।']],
-   [['What it replaced','इसने किसकी जगह ली'],
-    ['Eight handwritten quarterly boxes that no dealer took seriously and no system could enforce. One tier, one number, easy to remember.',
-     'आठ हस्तलिखित तिमाही खाने, जिन्हें न कोई डीलर गंभीरता से लेता था न कोई सिस्टम लागू कर सकता था। अब एक स्तर, एक संख्या, याद रखने में आसान।']]
-  ]
+  }
 },
 {
   title: ['Review and confirm', 'जाँचें और पुष्टि करें'],
@@ -413,18 +327,7 @@ var STEPS = [
    + '<p style="font-size:10.5px;color:var(--sand);line-height:1.6;margin-bottom:14px">'
    + (lang==='en' ? 'Trade terms v2.1 · recorded with your verified number, time, location and device.'
                   : 'व्यापार शर्तें v2.1 · आपके सत्यापित नंबर, समय, स्थान और डिवाइस के साथ दर्ज।') + '</p>';
-  },
-  notes: [
-   [['Unticked by default','डिफ़ॉल्ट रूप से बिना टिक'],
-    ['The button below stays dead until the box is ticked. A pre-ticked consent box is invalid consent under the DPDP Act and worthless as evidence.',
-     'जब तक बॉक्स टिक न हो, नीचे का बटन निष्क्रिय रहता है। पहले से टिक किया गया सहमति बॉक्स डीपीडीपी कानून के तहत अमान्य है और सबूत के तौर पर बेकार।']],
-   [['The text sits beside the box','पाठ बॉक्स के साथ ही है'],
-    ['Not behind a link. What the dealer could see at the moment he agreed is the whole question if this is ever disputed.',
-     'किसी लिंक के पीछे नहीं। विवाद होने पर पूरा सवाल यही होता है कि सहमति के समय डीलर को क्या दिख रहा था।']],
-   [['What actually carries the weight','असली वज़न किसका है'],
-    ['Not the tick. The chain: an OTP-verified number, a GPS-stamped session, the salesperson ID, the policy version, and a timestamp from a phone standing inside the shop.',
-     'टिक का नहीं। पूरी कड़ी का: ओटीपी से सत्यापित नंबर, जीपीएस वाला सत्र, सेल्समैन की आईडी, नीति संस्करण, और दुकान के भीतर खड़े फ़ोन से लिया गया समय।']]
-  ]
+  }
 }
 ];
 
@@ -526,14 +429,6 @@ function render(){
   var back = step > 0 ? '<button class="back" onclick="prev()">← ' + t('back') + '</button>' : '';
 
   document.getElementById('body').innerHTML = '<div id="errbanner" class="errbanner hidden"></div>' + s.html() + btn + back;
-
-  var n = '';
-  for (var i = 0; i < s.notes.length; i++){
-    n += '<p class="nk">' + s.notes[i][0][lang==='en'?0:1] + '</p>'
-       + '<p class="nv">' + s.notes[i][1][lang==='en'?0:1] + '</p>';
-  }
-  document.getElementById('nbody').innerHTML = n;
-  document.getElementById('ntitle').textContent = t('notes');
 }
 
 function next(){
@@ -576,30 +471,12 @@ function finish(){
   + '</div>'
   + '<button class="cta" style="margin-top:18px" onclick="restart()">'
   + (lang==='en' ? 'Start again' : 'फिर से शुरू करें') + '</button></div>';
-  document.getElementById('nbody').innerHTML =
-    '<p class="nk">' + (lang==='en' ? 'Within 30 seconds' : '30 सेकंड के भीतर') + '</p>'
-  + '<p class="nv">' + (lang==='en'
-      ? 'The dealer code is generated, the CRM task is created with a 48-hour clock, the distributor is notified, and the marketing kit enters the dispatch queue. Nobody types anything into a sheet.'
-      : 'डीलर कोड बन जाता है, 48 घंटे की समय-सीमा के साथ सीआरएम कार्य बनता है, वितरक को सूचना जाती है, और मार्केटिंग किट डिस्पैच कतार में चली जाती है। कोई किसी शीट में कुछ नहीं टाइप करता।') + '</p>'
-  + '<p class="nk">' + (lang==='en' ? 'The dealer\'s side' : 'डीलर की तरफ़') + '</p>'
-  + '<p class="nv">' + (lang==='en'
-      ? 'He has a reference number, a written record of what he agreed to, and a stated date for what arrives next. None of which he had with the paper form.'
-      : 'उसके पास एक संदर्भ संख्या है, जो उसने स्वीकार किया उसका लिखित रिकॉर्ड है, और अगली चीज़ कब आएगी उसकी तय तारीख है। कागज़ी फॉर्म में इनमें से कुछ नहीं था।') + '</p>';
 }
 function restart(){ step = 0; state = { docs:{}, pin:false, confirmed:false, unmarried:false, accept:false, fields:{} }; render(); }
 
 function setLang(l){
   lang = l;
-  document.getElementById('l-en').className = l === 'en' ? 'on' : '';
-  document.getElementById('l-hi').className = l === 'hi' ? 'on' : '';
-  document.getElementById('notebtn').textContent =
-    document.getElementById('notes').classList.contains('hidden') ? t('show') : t('hide');
   render();
-}
-function toggleNotes(){
-  var n = document.getElementById('notes');
-  n.classList.toggle('hidden');
-  document.getElementById('notebtn').textContent = n.classList.contains('hidden') ? t('show') : t('hide');
 }
 
 render();
