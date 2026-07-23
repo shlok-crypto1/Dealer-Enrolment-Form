@@ -60,17 +60,25 @@ input:disabled{background:var(--mist);color:var(--sand)}
 .pin{background:var(--egg);border:1px dashed var(--sand);border-radius:9px;padding:14px;text-align:center;font-size:12.5px;color:var(--avocado);cursor:pointer;margin:0 0 14px}
 .pin.done{border-style:solid;border-color:var(--kiwi)}
 
-.doc{display:flex;align-items:center;gap:10px;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:11px 12px;margin:0 0 8px;font-size:12.5px;cursor:pointer}
-.doc:hover{border-color:var(--sand)}
+.doc{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:11px 12px;margin:0 0 8px;font-size:12.5px}
 .doc.done{border-color:var(--kiwi)}
 .doc .tick{margin-left:auto;color:var(--lgrey);font-weight:500}
 .doc.done .tick{color:var(--kiwi)}
 .icn{width:15px;height:15px;flex:0 0 15px;border:1.5px solid var(--sand);border-radius:3px}
 .doc.done .icn{border-color:var(--kiwi)}
+.docactions{flex-basis:100%;display:flex;gap:16px;margin-top:2px}
+.doclink{font-size:11.5px;color:var(--avocado);text-decoration:underline;cursor:pointer;user-select:none}
+.doclink:hover{color:var(--kiwi)}
 
 .hero{background:var(--black);border-radius:14px;padding:17px;margin:0 0 14px}
 .hero b{display:block;font-family:Montserrat;font-weight:800;font-size:32px;color:var(--kiwi);line-height:1}
 .hero p{font-size:12px;color:var(--sand);line-height:1.65;margin-top:7px}
+
+.rsec-title{font-family:Montserrat;font-weight:700;font-size:12px;color:var(--black);margin:4px 0 12px;text-transform:uppercase;letter-spacing:.04em}
+.rwd{display:flex;gap:11px;margin:0 0 14px}
+.rwd .num{width:24px;height:24px;border-radius:50%;background:var(--kiwi);color:var(--black);font-family:Montserrat;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 24px}
+.rwd .rtext b{display:block;font-family:Montserrat;font-weight:700;font-size:12.5px;color:var(--black);margin-bottom:2px}
+.rwd .rtext p{font-size:11.5px;color:var(--slate);line-height:1.5}
 
 .declare{display:flex;gap:11px;background:var(--calm);border-radius:9px;padding:13px;margin:0 0 14px;cursor:pointer;border:1px solid transparent}
 .declare.err{border-color:var(--avocado)}
@@ -227,7 +235,7 @@ var STEPS = [
      + txt('f-anniv', 'text', state.unmarried ? '' : '28 / 11 / 1999', state.unmarried ? ' disabled placeholder="—"' : '') + '</div></div>'
    + '<div class="chips" id="marriedGroup" style="justify-content:center">'
    + '<span class="chip' + (state.unmarried ? ' on' : '') + '" onclick="toggleMarried()">' + (lang==='en'?'Unmarried':'अविवाहित') + '</span></div>'
-   + '<div class="row"><div>' + lab(['Another number','दूसरा नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
+   + '<div class="row"><div>' + lab(['Alternate Number','वैकल्पिक नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
    + '<div>' + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com') + '</div></div>'
    + lab(['Pincode', 'पिन कोड'], true)
    + txt('f-pincode', 'text', '226001', ' maxlength="6"')
@@ -250,8 +258,8 @@ var STEPS = [
   },
   notes: [
    [['A compulsory step','अनिवार्य चरण'],
-    ['Nothing advances until this is complete. Owner name, date of birth, email, pincode, firm address and landmark are all required — only the anniversary and the second number are not.',
-     'जब तक यह पूरा न हो, आगे नहीं बढ़ा जा सकता। मालिक का नाम, जन्म तिथि, ईमेल, पिन कोड, फर्म का पता और पास की पहचान — सब आवश्यक हैं — केवल सालगिरह और दूसरा नंबर आवश्यक नहीं।']],
+    ['Nothing advances until this is complete. Owner name, date of birth, email, pincode, firm address and landmark are all required — only the anniversary and the alternate number are not.',
+     'जब तक यह पूरा न हो, आगे नहीं बढ़ा जा सकता। मालिक का नाम, जन्म तिथि, ईमेल, पिन कोड, फर्म का पता और पास की पहचान — सब आवश्यक हैं — केवल सालगिरह और वैकल्पिक नंबर आवश्यक नहीं।']],
    [['Why "Unmarried" exists','"अविवाहित" क्यों है'],
     ['Without an escape, a compulsory anniversary traps every unmarried or widowed dealer — and your salesperson will simply invent a date to get past the screen. Ticking it removes the anniversary requirement entirely.',
      'बिना विकल्प के, अनिवार्य सालगिरह हर अविवाहित या विधुर डीलर को रोक देगी — और आपका सेल्समैन आगे बढ़ने के लिए कोई तारीख गढ़ लेगा। इसे टिक करने से सालगिरह की आवश्यकता पूरी तरह हट जाती है।']],
@@ -272,13 +280,14 @@ var STEPS = [
    + lab(['Size of your shop', 'दुकान का आकार'], false)
    + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], 1)
    + lab(['How many Display Mattresses do you require?', 'आपको कितने डिस्प्ले गद्दे चाहिए?'], true)
-   + txt('f-dispcount', 'number', '7', ' min="0" step="1"')
+   + txt('f-dispcount', 'number', '7', ' min="0" max="7" step="1"')
    + lab(['How many mattress salesperson work here?', 'यहाँ कितने गद्दा सेल्सपर्सन काम करते हैं?'], true)
    + txt('f-staff', 'number', '2', ' min="0" step="1"');
   },
   validate: function(){
    var errs = [];
-   if (!/^\d+$/.test(getVal('f-dispcount'))) errs.push('f-dispcount');
+   var disp = getVal('f-dispcount');
+   if (!/^\d+$/.test(disp) || parseInt(disp, 10) > 7) errs.push('f-dispcount');
    if (!/^\d+$/.test(getVal('f-staff'))) errs.push('f-staff');
    return errs;
   },
@@ -304,7 +313,7 @@ var STEPS = [
                       ['Boston','बोस्टन'],['Local','लोकल']], -2)
    + lab(['Any other brand?', 'कोई अन्य ब्रांड?'], false)
    + txt('f-brandsother', 'text', '', ' placeholder="' + (lang==='en' ? 'Name of others' : 'अन्य का नाम') + '"')
-   + lab(['Mattresses sold in a month', 'महीने में बिकने वाले गद्दे'], false)
+   + lab(['Mattress pairs sold in a month', 'महीने में बिकने वाले गद्दों के जोड़े'], false)
    + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], 1)
    + lab(['How many Foamico and VedaSleep mattresses do you sell in a month?', 'आप महीने में कितने फोमिको और वेदस्लीप गद्दे बेचते हैं?'], true)
    + txt('f-fv', 'number', '4', ' min="0" step="1"');
@@ -335,9 +344,9 @@ var STEPS = [
    + doc('in',    ['Inside the shop', 'दुकान के अंदर'])
    + doc('disp',  ['Your mattress display', 'आपका गद्दा प्रदर्शन'])
    + doc('own',   ["Owner's photo", 'मालिक की फोटो'])
-   + '<p style="font-size:11px;color:var(--sand);line-height:1.6;margin-top:10px">'
-   + (lang==='en' ? 'Tap a card to take a new photo or choose one from your gallery or files. All six photos are required.'
-                  : 'नई फोटो लेने या गैलरी/फ़ाइलों से चुनने के लिए कार्ड पर टैप करें। सभी छह फोटो ज़रूरी हैं।') + '</p>';
+   + '<p style="font-size:11px;color:var(--sand);line-height:1.6;margin:10px 0 20px">'
+   + (lang==='en' ? 'Take a new photo or choose one from your gallery or files for each document. All six photos are required.'
+                  : 'हर दस्तावेज़ के लिए नई फोटो लें या गैलरी/फ़ाइलों से चुनें। सभी छह फोटो ज़रूरी हैं।') + '</p>';
   },
   validate: function(){
    var keys = ['pan','chq','front','in','disp','own'];
@@ -360,16 +369,23 @@ var STEPS = [
 {
   title: ['The Gallery commitment', 'गैलरी प्रतिबद्धता'],
   html: function(){ return ''
-   + '<div class="hero"><b>' + (lang==='en' ? '8 pairs' : '8 जोड़े') + '</b><p>'
-   + (lang==='en' ? 'every month, across Foamico and VedaSleep together. This is what makes your shop a Foamico Gallery.'
-                  : 'हर महीने, फोमिको और वेदस्लीप मिलाकर। यही आपकी दुकान को फोमिको गैलरी बनाता है।')
+   + '<div class="hero"><b>' + (lang==='en' ? 'Qualify at 8 pairs / month' : '8 जोड़े / माह पर योग्य बनें') + '</b><p>'
+   + (lang==='en' ? 'Any pair, any model across Foamico + VedaSleep — one unified pool. This is what makes your shop a Foamico Gallery.'
+                  : 'फोमिको + वेदस्लीप में कोई भी जोड़ा, कोई भी मॉडल — एक साझा पूल। यही आपकी दुकान को फोमिको गैलरी बनाता है।')
    + '</p></div>'
-   + card('', [
-      'In return, from day one<br>· 15 branding and display items<br>· 7 display mattresses within 14 days<br>· Free Duro Classic pairs at each slab<br>· 20 premium pairs earns the Vision Trip',
-      'बदले में, पहले दिन से<br>· 15 ब्रांडिंग और डिस्प्ले सामग्री<br>· 14 दिन में 7 डिस्प्ले गद्दे<br>· हर स्लैब पर मुफ़्त ड्यूरो क्लासिक जोड़े<br>· 20 प्रीमियम जोड़े पर विज़न ट्रिप'])
+   + '<div class="rsec-title">' + (lang==='en' ? 'Rewards you unlock' : 'जो रिवॉर्ड आप अनलॉक करते हैं') + '</div>'
+   + rwd('1', ['Earn free Duro Classic pairs', 'मुफ़्त ड्यूरो क्लासिक जोड़े पाएं'],
+              ['Hit the per-category slab (12/10/6/3/2) and pick up a free pair at slab close.',
+               'प्रति-श्रेणी स्लैब (12/10/6/3/2) पूरा करें और स्लैब बंद होने पर एक मुफ़्त जोड़ा पाएं।'])
+   + rwd('2', ['Get day-one marketing support', 'पहले दिन से मार्केटिंग सहायता पाएं'],
+              ['15 branding and display kit items, plus seven display mattresses within 14 days of enrolment.',
+               '15 ब्रांडिंग और डिस्प्ले किट सामग्री, साथ ही नामांकन के 14 दिनों के भीतर सात डिस्प्ले गद्दे।'])
+   + rwd('3', ['Reach for the Vision Trip', 'विज़न ट्रिप के लिए पहुँचें'],
+              ['20 premium pairs across Sova Natural, Ultima Natural & Riva — travel with the Foamico MD & top management.',
+               'सोवा नेचुरल, अल्टिमा नेचुरल और रीवा में 20 प्रीमियम जोड़े — फोमिको एमडी और शीर्ष प्रबंधन के साथ यात्रा करें।'])
    + '<div class="chips" data-group="accept">'
    + '<span class="chip' + (state.accept ? ' on' : '') + '" id="acceptChip" onclick="toggleAccept()">'
-   + (lang==='en' ? 'I understand and accept' : 'मैं समझता हूँ और स्वीकार करता हूँ') + '</span></div>';
+   + (lang==='en' ? 'I accept' : 'मैं स्वीकार करता हूँ') + '</span></div>';
   },
   validate: function(){
    return state.accept ? [] : ['acceptChip'];
@@ -419,6 +435,10 @@ function lab(pair, required){
 function card(cls, pair){
   return '<div class="info ' + cls + '">' + pair[lang==='en'?0:1] + '</div>';
 }
+function rwd(num, titlePair, descPair){
+  return '<div class="rwd"><div class="num">' + num + '</div><div class="rtext"><b>'
+       + titlePair[lang==='en'?0:1] + '</b><p>' + descPair[lang==='en'?0:1] + '</p></div></div>';
+}
 function chips(group, items, selected){
   var multi = selected === -2;
   var preset = { brands: [0,1,4] };
@@ -432,10 +452,15 @@ function chips(group, items, selected){
 }
 function doc(key, pair){
   var done = !!state.docs[key];
-  return '<div class="doc' + (done ? ' done' : '') + '" id="doc-' + key + '" onclick="triggerShoot(\'' + key + '\')">'
+  return '<div class="doc' + (done ? ' done' : '') + '" id="doc-' + key + '">'
        + '<div class="icn"></div>' + pair[lang==='en'?0:1]
-       + '<span class="tick">' + (done ? '✓' : (lang==='en' ? 'Add photo' : 'फोटो जोड़ें')) + '</span>'
-       + '<input type="file" accept="image/*" id="file-' + key + '" style="display:none" onclick="event.stopPropagation()" onchange="fileChosen(\'' + key + '\')">'
+       + '<span class="tick">' + (done ? '✓' : '') + '</span>'
+       + '<div class="docactions">'
+       + '<span class="doclink" onclick="triggerShoot(\'' + key + '\',true)">' + (lang==='en' ? 'Take photo' : 'फोटो लें') + '</span>'
+       + '<span class="doclink" onclick="triggerShoot(\'' + key + '\',false)">' + (lang==='en' ? 'Choose from gallery/files' : 'गैलरी/फ़ाइलों से चुनें') + '</span>'
+       + '</div>'
+       + '<input type="file" accept="image/*" capture="environment" id="file-cam-' + key + '" style="display:none" onchange="fileChosen(\'' + key + '\')">'
+       + '<input type="file" accept="image/*" id="file-lib-' + key + '" style="display:none" onchange="fileChosen(\'' + key + '\')">'
        + '</div>';
 }
 function escAttr(s){
@@ -463,10 +488,13 @@ function pickChip(el, multi){
   if (!(wasOn && sibs.length === 1)) el.classList.add('on');
 }
 function dropPin(){ state.pin = true; render(); }
-function triggerShoot(key){ document.getElementById('file-' + key).click(); }
+function triggerShoot(key, camera){
+  document.getElementById((camera ? 'file-cam-' : 'file-lib-') + key).click();
+}
 function fileChosen(key){
-  var inp = document.getElementById('file-' + key);
-  state.docs[key] = !!(inp.files && inp.files.length);
+  var cam = document.getElementById('file-cam-' + key);
+  var lib = document.getElementById('file-lib-' + key);
+  state.docs[key] = !!((cam.files && cam.files.length) || (lib.files && lib.files.length));
   render();
 }
 function toggleConfirm(){ state.confirmed = !state.confirmed; render(); }
