@@ -71,10 +71,10 @@ input:disabled{background:var(--mist);color:var(--sand)}
 .doclink:hover{color:var(--kiwi)}
 
 .hero{background:var(--black);border-radius:14px;padding:17px;margin:0 0 14px}
-.hero b{display:block;font-family:Montserrat;font-weight:800;font-size:32px;color:var(--kiwi);line-height:1}
-.hero p{font-size:12px;color:var(--sand);line-height:1.65;margin-top:7px}
+.hero b{display:block;font-family:Montserrat;font-weight:800;font-size:32px;color:var(--kiwi);line-height:1.25}
+.hero p{font-size:12px;color:var(--egg);line-height:1.65;margin-top:7px}
 
-.rsec-title{font-family:Montserrat;font-weight:700;font-size:12px;color:var(--black);margin:4px 0 12px;text-transform:uppercase;letter-spacing:.04em}
+.rsec-title{font-family:Montserrat;font-weight:700;font-size:12px;color:var(--black);margin:4px 0 12px;text-transform:uppercase;letter-spacing:.04em;text-align:center}
 .rwd{display:flex;gap:11px;margin:0 0 14px}
 .rwd .num{width:24px;height:24px;border-radius:50%;background:var(--kiwi);color:var(--black);font-family:Montserrat;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 24px}
 .rwd .rtext b{display:block;font-family:Montserrat;font-weight:700;font-size:12.5px;color:var(--black);margin-bottom:2px}
@@ -369,21 +369,21 @@ var STEPS = [
 {
   title: ['The Gallery commitment', 'गैलरी प्रतिबद्धता'],
   html: function(){ return ''
-   + '<div class="hero"><b>' + (lang==='en' ? 'Qualify at 8 pairs / month' : '8 जोड़े / माह पर योग्य बनें') + '</b><p>'
-   + (lang==='en' ? 'Any pair, any model across Foamico + VedaSleep — one unified pool. This is what makes your shop a Foamico Gallery.'
-                  : 'फोमिको + वेदस्लीप में कोई भी जोड़ा, कोई भी मॉडल — एक साझा पूल। यही आपकी दुकान को फोमिको गैलरी बनाता है।')
+   + '<div class="hero"><b>' + (lang==='en' ? 'Qualify at 8 pairs per month.' : '8 जोड़े प्रति माह पर योग्य बनें।') + '</b><p>'
+   + (lang==='en' ? 'Any mattress pair, across models from the Foamico and VedaSleep series. A minimum of 8 pairs qualifies your store as a Foamico Gallery.'
+                  : 'फोमिको और वेदस्लीप श्रृंखला के किसी भी मॉडल का कोई भी गद्दा जोड़ा। न्यूनतम 8 जोड़े आपकी दुकान को फोमिको गैलरी के रूप में योग्य बनाते हैं।')
    + '</p></div>'
    + '<div class="rsec-title">' + (lang==='en' ? 'Rewards you unlock' : 'जो रिवॉर्ड आप अनलॉक करते हैं') + '</div>'
-   + rwd('1', ['Earn free Duro Classic pairs', 'मुफ़्त ड्यूरो क्लासिक जोड़े पाएं'],
-              ['Hit the per-category slab (12/10/6/3/2) and pick up a free pair at slab close.',
-               'प्रति-श्रेणी स्लैब (12/10/6/3/2) पूरा करें और स्लैब बंद होने पर एक मुफ़्त जोड़ा पाएं।'])
-   + rwd('2', ['Get day-one marketing support', 'पहले दिन से मार्केटिंग सहायता पाएं'],
-              ['15 branding and display kit items, plus seven display mattresses within 14 days of enrolment.',
-               '15 ब्रांडिंग और डिस्प्ले किट सामग्री, साथ ही नामांकन के 14 दिनों के भीतर सात डिस्प्ले गद्दे।'])
-   + rwd('3', ['Reach for the Vision Trip', 'विज़न ट्रिप के लिए पहुँचें'],
-              ['20 premium pairs across Sova Natural, Ultima Natural & Riva — travel with the Foamico MD & top management.',
-               'सोवा नेचुरल, अल्टिमा नेचुरल और रीवा में 20 प्रीमियम जोड़े — फोमिको एमडी और शीर्ष प्रबंधन के साथ यात्रा करें।'])
-   + '<div class="chips" data-group="accept">'
+   + rwd('1', ['Exclusive Marketing Support', 'विशेष मार्केटिंग सहायता'],
+              ['Get 15 branding kit items and 7 display mattresses within two weeks of enrolment.',
+               'नामांकन के दो सप्ताह के भीतर 15 ब्रांडिंग किट सामग्री और 7 डिस्प्ले गद्दे पाएं।'])
+   + rwd('2', ['Qualify for the Vision Trip', 'विज़न ट्रिप के लिए योग्य बनें'],
+              ['Achieve 20 premium mattress pairs across Sova Natural, Ultima Natural, and Riva during the financial year to earn an exclusive trip with the Managing Director and senior leadership team.',
+               'वित्तीय वर्ष के दौरान सोवा नेचुरल, अल्टिमा नेचुरल और रीवा में 20 प्रीमियम गद्दे के जोड़े हासिल करें और प्रबंध निदेशक व वरिष्ठ नेतृत्व टीम के साथ एक विशेष यात्रा अर्जित करें।'])
+   + rwd('3', ['Earn free Duro Classic pairs', 'मुफ़्त ड्यूरो क्लासिक जोड़े पाएं'],
+              ['Achieve the per-category slab and receive a free pair of Duro Classic every month.',
+               'प्रति-श्रेणी स्लैब हासिल करें और हर महीने ड्यूरो क्लासिक का एक मुफ़्त जोड़ा पाएं।'])
+   + '<div class="chips" data-group="accept" style="justify-content:center">'
    + '<span class="chip' + (state.accept ? ' on' : '') + '" id="acceptChip" onclick="toggleAccept()">'
    + (lang==='en' ? 'I accept' : 'मैं स्वीकार करता हूँ') + '</span></div>';
   },
