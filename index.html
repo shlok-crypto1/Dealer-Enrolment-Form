@@ -51,9 +51,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
 .chip:hover{border-color:var(--sand)}
 .chip.on{background:var(--kiwi);border-color:var(--kiwi);color:var(--black)}
 
-.pin{background:var(--egg);border:1px dashed var(--sand);border-radius:9px;padding:14px;text-align:center;font-size:12.5px;color:var(--avocado);cursor:pointer;margin:0 0 14px}
-.pin.done{border-style:solid;border-color:var(--kiwi)}
-
 .doc{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:11px 12px;margin:0 0 8px;font-size:12.5px}
 .doc.done{border-color:var(--kiwi)}
 .doc .tick{margin-left:auto;color:var(--lgrey);font-weight:500}
@@ -130,7 +127,7 @@ input:disabled{background:var(--mist);color:var(--sand)}
 <script>
 var lang = 'en';
 var step = 0;
-var state = { docs: {}, pin: false, confirmed: false, unmarried: false, accept: false, fields: {} };
+var state = { docs: {}, confirmed: false, unmarried: false, accept: false, fields: {} };
 
 var T = {
   cont:      ['Continue', 'आगे बढ़ें'],
@@ -220,12 +217,6 @@ var STEPS = [
 {
   title: ['Your shop', 'आपकी दुकान'],
   html: function(){ return ''
-   + lab(['Shop location', 'दुकान का स्थान'], true)
-   + '<div class="pin' + (state.pin ? ' done' : '') + '" id="shopPin" onclick="dropPin()">'
-     + (state.pin ? (lang==='en' ? 'Pin saved · 26.8467, 80.9462' : 'पिन सहेजा गया · 26.8467, 80.9462')
-                  : (lang==='en' ? 'Drop a pin, or paste a Maps link' : 'पिन लगाएँ, या मैप्स लिंक पेस्ट करें')) + '</div>'
-   + (state.pin ? card('', ['Open 10am to 8:30pm · visit GPS and time recorded',
-                            'सुबह 10 से रात 8:30 तक खुली · दौरे का जीपीएस और समय दर्ज']) : '')
    + lab(['Size of your shop', 'दुकान का आकार'], false)
    + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], 1)
    + lab(['How many Display Mattresses do you require?', 'आपको कितने डिस्प्ले गद्दे चाहिए?'], true)
@@ -235,7 +226,6 @@ var STEPS = [
   },
   validate: function(){
    var errs = [];
-   if (!state.pin) errs.push('shopPin');
    var disp = getVal('f-dispcount');
    if (!/^\d+$/.test(disp) || parseInt(disp, 10) > 7) errs.push('f-dispcount');
    if (!/^\d+$/.test(getVal('f-staff'))) errs.push('f-staff');
@@ -385,7 +375,6 @@ function pickChip(el, multi){
   for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('on');
   if (!(wasOn && sibs.length === 1)) el.classList.add('on');
 }
-function dropPin(){ state.pin = true; render(); }
 function triggerShoot(key, camera){
   document.getElementById((camera ? 'file-cam-' : 'file-lib-') + key).click();
 }
@@ -467,7 +456,7 @@ function finish(){
   + '<button class="cta" style="margin-top:18px" onclick="restart()">'
   + (lang==='en' ? 'Start again' : 'फिर से शुरू करें') + '</button></div>';
 }
-function restart(){ step = 0; state = { docs:{}, pin:false, confirmed:false, unmarried:false, accept:false, fields:{} }; render(); }
+function restart(){ step = 0; state = { docs:{}, confirmed:false, unmarried:false, accept:false, fields:{} }; render(); }
 
 function setLang(l){
   lang = l;
