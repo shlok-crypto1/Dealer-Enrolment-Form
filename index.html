@@ -271,19 +271,13 @@ var STEPS = [
   title: ['Documents', 'दस्तावेज़'],
   html: function(){ return ''
    + doc('pan',   ['PAN card', 'पैन कार्ड'])
-   + doc('chq',   ['Cancelled cheque', 'रद्द चेक'])
-   + (state.docs.chq ? card('', ['<strong>From your cheque</strong><br>HDFC Bank, Hazratganj<br>A/c 50210034872910 · IFSC verified',
-                                 '<strong>आपके चेक से</strong><br>एचडीएफसी बैंक, हज़रतगंज<br>खाता 50210034872910 · आईएफएससी सत्यापित']) : '')
-   + doc('front', ['Shopfront with signboard', 'साइनबोर्ड सहित दुकान का सामने'])
-   + doc('in',    ['Inside the shop', 'दुकान के अंदर'])
    + doc('disp',  ['Your mattress display', 'आपका गद्दा प्रदर्शन'])
-   + doc('own',   ["Owner's photo", 'मालिक की फोटो'])
    + '<p style="font-size:11px;color:var(--sand);line-height:1.6;margin:10px 0 20px">'
-   + (lang==='en' ? 'Take a new photo or choose one from your gallery or files for each document. All six photos are required.'
-                  : 'हर दस्तावेज़ के लिए नई फोटो लें या गैलरी/फ़ाइलों से चुनें। सभी छह फोटो ज़रूरी हैं।') + '</p>';
+   + (lang==='en' ? 'Take a new photo or choose one from your gallery or files for each document. Both photos are required.'
+                  : 'हर दस्तावेज़ के लिए नई फोटो लें या गैलरी/फ़ाइलों से चुनें। दोनों फोटो ज़रूरी हैं।') + '</p>';
   },
   validate: function(){
-   var keys = ['pan','chq','front','in','disp','own'];
+   var keys = ['pan','disp'];
    var errs = [];
    for (var i = 0; i < keys.length; i++){ if (!state.docs[keys[i]]) errs.push('doc-' + keys[i]); }
    return errs;
