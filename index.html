@@ -127,7 +127,11 @@ input:disabled{background:var(--mist);color:var(--sand)}
 <script>
 var lang = 'en';
 var step = 0;
-var state = { docs: {}, confirmed: false, unmarried: false, accept: false, fields: {} };
+var state = {
+  docs: {}, confirmed: false, unmarried: false, accept: false, fields: {},
+  mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
+};
+var PROGRESS_KEY = 'foamicoWizardProgress_v1';
 
 var T = {
   cont:      ['Continue', 'आगे बढ़ें'],
@@ -141,15 +145,23 @@ function t(k){ return T[k][lang === 'en' ? 0 : 1]; }
 var STEPS = [
 {
   title: ['Verify your number', 'अपना नंबर सत्यापित करें'],
-  html: function(){ return ''
+  html: function(){
+   var mobile = state.fields['f-mobile'] || '';
+   var verified = state.mobileVerified && state.verifiedMobile === digitsOnly(mobile);
+   return ''
    + card('plain', ['Become a Foamico Authorised branded display and unlock the full reward stack — free pairs, marketing support and the International Foamico Vision Trip.',
                     'फोमिको अधिकृत ब्रांडेड डिस्प्ले बनें और पूरा रिवॉर्ड पैकेज पाएं — मुफ़्त जोड़े, मार्केटिंग सहायता और इंटरनेशनल फोमिको विज़न ट्रिप।'])
    + lab(['Your mobile number (WhatsApp)', 'आपका मोबाइल नंबर (व्हाट्सएप)'], true)
-   + txt('f-mobile', 'tel', '98765 43210')
+   + mobileInput()
+   + '<span class="doclink" id="sendCodeBtn" onclick="sendOtp()">' + (lang==='en' ? 'Send code' : 'कोड भेजें') + '</span>'
+   + '<div id="otpSendStatus" style="font-size:11px;margin:6px 0 14px;min-height:14px;color:var(--avocado)"></div>'
    + lab(['Enter the 6-digit code we sent', 'भेजा गया 6 अंकों का कोड डालें'], false)
-   + txt('f-otp', 'text', '419273', ' maxlength="6" style="letter-spacing:.5em"')
+   + otpInput()
+   + '<div id="otpVerifyStatus" style="font-size:11px;margin:6px 0 14px;min-height:14px;color:var(--avocado)"></div>'
+   + '<div id="mobileVerifiedCard"' + (verified ? '' : ' style="display:none"') + '>'
    + card('', ['<strong>Number verified.</strong> This is the only code you will be asked for.',
                '<strong>नंबर सत्यापित हुआ।</strong> आपसे केवल यही कोड माँगा जाएगा।'])
+   + '</div>'
    + lab(['Which language do you prefer?', 'आप कौन सी भाषा पसंद करेंगे?'], false)
    + '<div class="chips" id="langChips">'
    + '<span class="chip' + (lang === 'en' ? ' on' : '') + '" onclick="setLang(\'en\')">English</span>'
@@ -158,7 +170,9 @@ var STEPS = [
   },
   validate: function(){
    var errs = [];
-   if (digitsOnly(getVal('f-mobile')).length !== 10) errs.push('f-mobile');
+   var mobile = digitsOnly(getVal('f-mobile'));
+   if (mobile.length !== 10){ errs.push('f-mobile'); return errs; }
+   if (!state.mobileVerified || state.verifiedMobile !== mobile) errs.push('f-otp');
    return errs;
   }
 },
@@ -358,6 +372,17 @@ function txt(id, type, dflt, extra){
   var v = state.fields.hasOwnProperty(id) ? state.fields[id] : dflt;
   return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '" oninput="onField(this)"' + (extra || '') + '>';
 }
+function mobileInput(){
+  var v = state.fields.hasOwnProperty('f-mobile') ? state.fields['f-mobile'] : '';
+  return '<input type="tel" id="f-mobile" value="' + escAttr(v) + '" maxlength="11"'
+       + ' placeholder="98765 43210" oninput="onMobileInput(this)">';
+}
+function otpInput(){
+  var v = state.fields.hasOwnProperty('f-otp') ? state.fields['f-otp'] : '';
+  return '<input type="text" id="f-otp" value="' + escAttr(v) + '" maxlength="6" style="letter-spacing:.5em"'
+       + ' placeholder="••••••" oninput="onOtpInput(this)" onblur="onOtpBlur(this)"'
+       + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();verifyOtpNow();}">';
+}
 function getVal(id){
   var el = document.getElementById(id);
   return el ? el.value.trim() : '';
@@ -366,6 +391,151 @@ function digitsOnly(s){ return s.replace(/\D/g, ''); }
 function onField(el){
   state.fields[el.id] = el.value;
   el.classList.remove('err');
+  saveProgress();
+}
+
+var OTP_RESEND_SECONDS = 30;
+var otpResendTimer = null;
+
+function setOtpSendStatus(msg, isErr){
+  var el = document.getElementById('otpSendStatus');
+  if (el){ el.textContent = msg || ''; el.style.color = isErr ? '#C0392B' : 'var(--avocado)'; }
+}
+function setOtpVerifyStatus(msg, isErr){
+  var el = document.getElementById('otpVerifyStatus');
+  if (el){ el.textContent = msg || ''; el.style.color = isErr ? '#C0392B' : 'var(--avocado)'; }
+}
+function clearVerification(){
+  state.mobileVerified = false;
+  state.verifiedMobile = null;
+  state.verifyToken = null;
+  state.verifyTokenExpiresAt = null;
+  var vc = document.getElementById('mobileVerifiedCard');
+  if (vc) vc.style.display = 'none';
+  setOtpVerifyStatus('', false);
+  saveProgress();
+}
+function onMobileInput(el){
+  onField(el);
+  if (state.mobileVerified && state.verifiedMobile !== digitsOnly(el.value)) clearVerification();
+}
+function onOtpInput(el){
+  onField(el);
+  if (digitsOnly(el.value).length === 6) verifyOtpNow();
+}
+function onOtpBlur(el){
+  if (digitsOnly(el.value).length === 6 && !state.mobileVerified) verifyOtpNow();
+}
+
+function sendOtp(){
+  var mobile = digitsOnly(getVal('f-mobile'));
+  if (mobile.length !== 10){
+    var mEl = document.getElementById('f-mobile');
+    if (mEl) mEl.classList.add('err');
+    setOtpSendStatus(lang==='en' ? 'Enter a valid 10-digit mobile number.' : 'सही 10 अंकों का मोबाइल नंबर डालें।', true);
+    return;
+  }
+  var btn = document.getElementById('sendCodeBtn');
+  setOtpSendStatus(lang==='en' ? 'Sending code…' : 'कोड भेजा जा रहा है…', false);
+  fetch('/api/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile: mobile })
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(data){ return { ok: r.ok, data: data }; });
+  }).then(function(res){
+    if (res.ok && res.data && res.data.sent){
+      setOtpSendStatus(lang==='en' ? 'Code sent on WhatsApp.' : 'व्हाट्सएप पर कोड भेजा गया।', false);
+      startResendCooldown();
+    } else {
+      setOtpSendStatus((res.data && res.data.message) || (lang==='en' ? 'Could not send code. Try again.' : 'कोड नहीं भेजा जा सका। दोबारा कोशिश करें।'), true);
+    }
+  }).catch(function(){
+    setOtpSendStatus(lang==='en' ? 'Network error. Try again.' : 'नेटवर्क त्रुटि। दोबारा कोशिश करें।', true);
+  });
+}
+function startResendCooldown(){
+  var btn = document.getElementById('sendCodeBtn');
+  var remaining = OTP_RESEND_SECONDS;
+  if (otpResendTimer) clearInterval(otpResendTimer);
+  function tick(){
+    if (!btn) { clearInterval(otpResendTimer); return; }
+    if (remaining <= 0){
+      clearInterval(otpResendTimer);
+      btn.textContent = lang==='en' ? 'Resend code' : 'कोड फिर भेजें';
+      btn.onclick = sendOtp;
+      btn.style.pointerEvents = '';
+      btn.style.opacity = '';
+      return;
+    }
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '.5';
+    btn.textContent = (lang==='en' ? 'Resend in ' : 'फिर भेजें ') + remaining + 's';
+    remaining--;
+  }
+  tick();
+  otpResendTimer = setInterval(tick, 1000);
+}
+function verifyOtpNow(){
+  var mobile = digitsOnly(getVal('f-mobile'));
+  var otp = digitsOnly(getVal('f-otp'));
+  if (mobile.length !== 10 || otp.length !== 6) return;
+  setOtpVerifyStatus(lang==='en' ? 'Verifying…' : 'सत्यापित हो रहा है…', false);
+  fetch('/api/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile: mobile, otp: otp })
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(data){ return { ok: r.ok, data: data }; });
+  }).then(function(res){
+    if (res.ok && res.data && res.data.verified){
+      state.mobileVerified = true;
+      state.verifiedMobile = res.data.mobile || mobile;
+      state.verifyToken = res.data.token || null;
+      state.verifyTokenExpiresAt = res.data.expiresAt || null;
+      setOtpVerifyStatus('', false);
+      saveProgress();
+      render();
+    } else {
+      state.mobileVerified = false;
+      setOtpVerifyStatus((res.data && res.data.message) || (lang==='en' ? 'Incorrect code. Try again.' : 'गलत कोड। दोबारा कोशिश करें।'), true);
+      var oEl = document.getElementById('f-otp');
+      if (oEl) oEl.classList.add('err');
+    }
+  }).catch(function(){
+    setOtpVerifyStatus(lang==='en' ? 'Network error. Try again.' : 'नेटवर्क त्रुटि। दोबारा कोशिश करें।', true);
+  });
+}
+
+function saveProgress(){
+  try {
+    var data = {
+      step: step, lang: lang, fields: state.fields,
+      confirmed: state.confirmed, unmarried: state.unmarried, accept: state.accept,
+      mobileVerified: state.mobileVerified, verifiedMobile: state.verifiedMobile,
+      verifyToken: state.verifyToken, verifyTokenExpiresAt: state.verifyTokenExpiresAt
+    };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch(e){}
+}
+function loadProgress(){
+  try {
+    var raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (!data) return;
+    var verifyExpired = data.verifyTokenExpiresAt && Date.now() > data.verifyTokenExpiresAt;
+    step = data.step || 0;
+    lang = data.lang || 'en';
+    state.fields = data.fields || {};
+    state.confirmed = !!data.confirmed;
+    state.unmarried = !!data.unmarried;
+    state.accept = !!data.accept;
+    state.mobileVerified = verifyExpired ? false : !!data.mobileVerified;
+    state.verifiedMobile = verifyExpired ? null : (data.verifiedMobile || null);
+    state.verifyToken = verifyExpired ? null : (data.verifyToken || null);
+    state.verifyTokenExpiresAt = verifyExpired ? null : (data.verifyTokenExpiresAt || null);
+  } catch(e){}
 }
 
 function pickChip(el, multi){
@@ -413,6 +583,7 @@ function render(){
   var back = step > 0 ? '<button class="back" onclick="prev()">← ' + t('back') + '</button>' : '';
 
   document.getElementById('body').innerHTML = '<div id="errbanner" class="errbanner hidden"></div>' + s.html() + btn + back;
+  saveProgress();
 }
 
 function next(){
@@ -439,6 +610,7 @@ function prev(){ if (step > 0){ step--; render(); window.scrollTo(0,0); } }
 
 function finish(){
   if (!state.confirmed) return;
+  try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
   document.getElementById('stepno').textContent = lang==='en' ? 'Enrolled' : 'दर्ज हुआ';
   document.getElementById('steptitle').textContent = lang==='en' ? 'Welcome to Foamico Gallery' : 'फोमिको गैलरी में स्वागत है';
   document.getElementById('fill').style.width = '100%';
@@ -456,13 +628,22 @@ function finish(){
   + '<button class="cta" style="margin-top:18px" onclick="restart()">'
   + (lang==='en' ? 'Start again' : 'फिर से शुरू करें') + '</button></div>';
 }
-function restart(){ step = 0; state = { docs:{}, confirmed:false, unmarried:false, accept:false, fields:{} }; render(); }
+function restart(){
+  step = 0;
+  state = {
+    docs: {}, confirmed: false, unmarried: false, accept: false, fields: {},
+    mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
+  };
+  try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
+  render();
+}
 
 function setLang(l){
   lang = l;
   render();
 }
 
+loadProgress();
 render();
 </script>
 </body>
