@@ -212,8 +212,10 @@ var STEPS = [
   },
   validate: function(){
    var errs = [];
-   if (!GSTIN_RE.test(getVal('f-gst').toUpperCase())) errs.push('f-gst');
-   if (!getVal('f-firmname')) errs.push('f-firmname');
+   // GSTIN format + firm name temporarily not required to continue — re-enable
+   // once GSTIN verification is confirmed working end to end.
+   // if (!GSTIN_RE.test(getVal('f-gst').toUpperCase())) errs.push('f-gst');
+   // if (!getVal('f-firmname')) errs.push('f-firmname');
    if (!getVal('f-signboard')) errs.push('f-signboard');
    return errs;
   }
