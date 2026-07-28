@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Foamico Gallery — Dealer Registration Prototype</title>
+<link rel="icon" type="image/jpeg" href="favicon.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
@@ -31,9 +32,9 @@ body{font-family:Poppins,system-ui,sans-serif;background:var(--mist);color:var(-
 .fill{height:3px;background:var(--kiwi);border-radius:2px;width:12%;transition:width .3s ease}
 .dbody{padding:18px;background:var(--paper);min-height:430px}
 
-label,.lab{display:block;font-size:11px;color:var(--slate);margin:0 0 6px;line-height:1.5}
+label,.lab{display:block;font-size:12.5px;font-weight:700;color:var(--slate);margin:0 0 6px;line-height:1.5}
 .req{color:var(--avocado)}
-input[type=text],input[type=email],input[type=tel],input[type=number]{width:100%;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:10px 11px;font-family:Poppins;font-size:13.5px;color:var(--black);margin:0 0 14px}
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date]{width:100%;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:10px 11px;font-family:Poppins;font-size:13.5px;color:var(--black);margin:0 0 14px}
 input:focus{outline:none;border-color:var(--kiwi);box-shadow:0 0 0 3px rgba(149,193,43,.2)}
 input::placeholder{color:var(--sand)}
 input:disabled{background:var(--mist);color:var(--sand)}
@@ -143,15 +144,15 @@ var STEPS = [
    var mobile = state.fields['f-mobile'] || '';
    var verified = state.mobileVerified && state.verifiedMobile === digitsOnly(mobile);
    return ''
-   + card('plain', ['Become a Foamico Authorised branded display and unlock the full reward stack — free pairs, marketing support and the International Foamico Vision Trip.',
-                    'फोमिको अधिकृत ब्रांडेड डिस्प्ले बनें और पूरा रिवॉर्ड पैकेज पाएं — मुफ़्त जोड़े, मार्केटिंग सहायता और इंटरनेशनल फोमिको विज़न ट्रिप।'])
+   + card('plain', ['Become a Foamico Authorised Partner and unlock free mattress pairs, marketing support and the International Foamico Vision Trip.',
+                    'फोमिको अधिकृत पार्टनर बनें और मुफ़्त गद्दे के जोड़े, मार्केटिंग सहायता और इंटरनेशनल फोमिको विज़न ट्रिप अनलॉक करें।'])
    + lab(['Your mobile number (WhatsApp)', 'आपका मोबाइल नंबर (व्हाट्सएप)'], true)
    + mobileInput()
    + '<span class="doclink" id="sendCodeBtn" onclick="sendOtp()">' + (lang==='en' ? 'Send code' : 'कोड भेजें') + '</span>'
-   + '<div id="otpSendStatus" style="font-size:11px;margin:6px 0 14px;min-height:14px;color:var(--avocado)"></div>'
+   + '<div id="otpSendStatus" style="font-size:11px;margin:4px 0 8px;min-height:14px;color:var(--avocado)"></div>'
    + lab(['Enter the 6-digit code we sent', 'भेजा गया 6 अंकों का कोड डालें'], false)
    + otpInput()
-   + '<div id="otpVerifyStatus" style="font-size:11px;margin:6px 0 14px;min-height:14px;color:var(--avocado)"></div>'
+   + '<div id="otpVerifyStatus" style="font-size:11px;margin:4px 0 8px;min-height:14px;color:var(--avocado)"></div>'
    + '<div id="mobileVerifiedCard"' + (verified ? '' : ' style="display:none"') + '>'
    + card('', ['<strong>Number verified.</strong> This is the only code you will be asked for.',
                '<strong>नंबर सत्यापित हुआ।</strong> आपसे केवल यही कोड माँगा जाएगा।'])
@@ -180,16 +181,16 @@ var STEPS = [
    return ''
    + lab(["Owner's full name", 'मालिक का पूरा नाम'], true)
    + txt('f-ownername', 'text', 'Ramesh Gupta')
-   + '<div class="row"><div>' + lab(['Date of birth','जन्म तिथि'], true) + txt('f-dob', 'text', '14 / 03 / 1974') + '</div>'
+   + '<div class="row"><div>' + lab(['Date of birth','जन्म तिथि'], true) + txt('f-dob', 'date', '') + '</div>'
    + '<div>' + lab(['Anniversary','सालगिरह'], !state.unmarried)
-     + txt('f-anniv', 'text', state.unmarried ? '' : '28 / 11 / 1999', state.unmarried ? ' disabled placeholder="—"' : '') + '</div></div>'
+     + txt('f-anniv', 'date', '', state.unmarried ? ' disabled' : '') + '</div></div>'
    + '<div class="chips" id="marriedGroup" style="justify-content:center">'
    + '<span class="chip' + (state.unmarried ? ' on' : '') + '" onclick="toggleMarried()">' + (lang==='en'?'Unmarried':'अविवाहित') + '</span></div>'
    + '<div class="row"><div>' + lab(['Alternate Number','वैकल्पिक नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
    + '<div>' + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com') + '</div></div>'
    + lab(['Pincode', 'पिन कोड'], true)
    + pincodeInput()
-   + '<div id="pincodeStatus" style="font-size:11px;margin:6px 0 12px;min-height:14px;color:var(--avocado)"></div>'
+   + '<div id="pincodeStatus" style="font-size:11px;margin:2px 0 6px;min-height:14px;color:var(--avocado)"></div>'
    + '<div id="pincodeResultCard"' + (pincodeFound ? '' : ' style="display:none"') + '>'
    + (pincodeFound ? card('', [
        escAttr(state.pincodeDistrict) + ' · ' + escAttr(state.pincodeState),
@@ -217,7 +218,7 @@ var STEPS = [
   title: ['Your shop', 'आपकी दुकान'],
   html: function(){ return ''
    + lab(['Size of your shop', 'दुकान का आकार'], false)
-   + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], 1)
+   + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], -1)
    + lab(['How many Display Mattresses do you require?', 'आपको कितने डिस्प्ले गद्दे चाहिए?'], true)
    + txt('f-dispcount', 'number', '7', ' min="0" max="7" step="1"')
    + lab(['How many mattress salesperson work here?', 'यहाँ कितने गद्दा सेल्सपर्सन काम करते हैं?'], true)
@@ -243,9 +244,9 @@ var STEPS = [
                       ['King Koil','किंग कॉयल'],['Springwel','स्प्रिंगवेल'],['Livpure','लिवप्योर'],['Emma','एम्मा'],
                       ['Boston','बोस्टन'],['Local','लोकल']], -2)
    + lab(['Any other brand?', 'कोई अन्य ब्रांड?'], false)
-   + txt('f-brandsother', 'text', '', ' placeholder="' + (lang==='en' ? 'Name of others' : 'अन्य का नाम') + '"')
+   + txt('f-brandsother', 'text', '')
    + lab(['Mattress pairs sold in a month', 'महीने में बिकने वाले गद्दों के जोड़े'], false)
-   + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], 1)
+   + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], -1)
    + lab(['How many Foamico and VedaSleep mattresses do you sell in a month?', 'आप महीने में कितने फोमिको और वेदस्लीप गद्दे बेचते हैं?'], true)
    + txt('f-fv', 'number', '4', ' min="0" step="1"');
   },
@@ -325,7 +326,7 @@ function rwd(num, titlePair, descPair){
 }
 function chips(group, items, selected){
   var multi = selected === -2;
-  var preset = { brands: [0,1,4] };
+  var preset = {};
   var stored = state.fields[group];
   var h = '<div class="chips" data-group="' + group + '">';
   for (var i = 0; i < items.length; i++){
@@ -344,32 +345,27 @@ function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
 function txt(id, type, dflt, extra){
-  // dflt is a placeholder hint, not a real value — a form that starts
-  // pre-filled with demo text lets someone tab through without typing
-  // anything: client-side validation reads the real DOM value (which
-  // shows the demo text and passes), but state.fields[id] never gets
-  // set because oninput only fires on an actual edit, so the eventual
-  // submission goes out with that field blank.
+  // dflt no longer renders as a placeholder — an unedited field must look
+  // and stay empty, since state.fields[id] only gets set on a real edit
+  // and that's what actually goes into the submission payload.
   var v = state.fields.hasOwnProperty(id) ? state.fields[id] : '';
-  var hasOwnPlaceholder = extra && /placeholder=/.test(extra);
-  var placeholderAttr = (!hasOwnPlaceholder && dflt) ? ' placeholder="' + escAttr(dflt) + '"' : '';
-  return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '"' + placeholderAttr + ' oninput="onField(this)"' + (extra || '') + '>';
+  return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '" oninput="onField(this)"' + (extra || '') + '>';
 }
 function mobileInput(){
   var v = state.fields.hasOwnProperty('f-mobile') ? state.fields['f-mobile'] : '';
   return '<input type="tel" id="f-mobile" value="' + escAttr(v) + '" maxlength="11"'
-       + ' placeholder="98765 43210" oninput="onMobileInput(this)">';
+       + ' oninput="onMobileInput(this)">';
 }
 function otpInput(){
   var v = state.fields.hasOwnProperty('f-otp') ? state.fields['f-otp'] : '';
   return '<input type="text" id="f-otp" value="' + escAttr(v) + '" maxlength="6" style="letter-spacing:.5em"'
-       + ' placeholder="••••••" oninput="onOtpInput(this)" onblur="onOtpBlur(this)"'
+       + ' oninput="onOtpInput(this)" onblur="onOtpBlur(this)"'
        + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();verifyOtpNow();}">';
 }
 function pincodeInput(){
   var v = state.fields.hasOwnProperty('f-pincode') ? state.fields['f-pincode'] : '';
   return '<input type="text" id="f-pincode" value="' + escAttr(v) + '" maxlength="6" inputmode="numeric"'
-       + ' placeholder="226001" oninput="onPincodeInput(this)">';
+       + ' style="margin-bottom:6px" oninput="onPincodeInput(this)">';
 }
 function getVal(id){
   var el = document.getElementById(id);
