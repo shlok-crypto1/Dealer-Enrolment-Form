@@ -51,13 +51,6 @@ input:disabled{background:var(--mist);color:var(--sand)}
 .chip:hover{border-color:var(--sand)}
 .chip.on{background:var(--kiwi);border-color:var(--kiwi);color:var(--black)}
 
-.doc{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--egg);border:1px solid var(--lgrey);border-radius:9px;padding:11px 12px;margin:0 0 8px;font-size:12.5px}
-.doc.done{border-color:var(--kiwi)}
-.doc .tick{margin-left:auto;color:var(--lgrey);font-weight:500}
-.doc.done .tick{color:var(--kiwi)}
-.icn{width:15px;height:15px;flex:0 0 15px;border:1.5px solid var(--sand);border-radius:3px}
-.doc.done .icn{border-color:var(--kiwi)}
-.docactions{flex-basis:100%;display:flex;gap:16px;margin-top:2px}
 .doclink{font-size:11.5px;color:var(--avocado);text-decoration:underline;cursor:pointer;user-select:none}
 .doclink:hover{color:var(--kiwi)}
 
@@ -114,7 +107,7 @@ input:disabled{background:var(--mist);color:var(--sand)}
 <div class="wrap">
 <div class="device">
   <div class="dhead">
-    <div class="dstep" id="stepno">Step 1 of 8</div>
+    <div class="dstep" id="stepno">Step 1 of 6</div>
     <div class="dtitle" id="steptitle">Verify your number</div>
     <div class="track"><div class="fill" id="fill"></div></div>
   </div>
@@ -128,9 +121,8 @@ input:disabled{background:var(--mist);color:var(--sand)}
 var lang = 'en';
 var step = 0;
 var state = {
-  docs: {}, confirmed: false, unmarried: false, accept: false, fields: {},
-  mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null,
-  gstinVerified: false, verifiedGstin: null, gstinLegalName: null, gstinCheck: null
+  confirmed: false, unmarried: false, accept: false, fields: {},
+  mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
 };
 var PROGRESS_KEY = 'foamicoWizardProgress_v1';
 
@@ -138,7 +130,7 @@ var T = {
   cont:      ['Continue', 'आगे बढ़ें'],
   back:      ['Back', 'पीछे'],
   req:       [' · required', ' · आवश्यक'],
-  stepof:    ['Step # of 8', 'चरण # / 8'],
+  stepof:    ['Step # of @', 'चरण # / @'],
   errmsg:    ['Please check the highlighted fields before continuing.', 'कृपया आगे बढ़ने से पहले हाइलाइट किए गए फ़ील्ड जाँचें।']
 };
 function t(k){ return T[k][lang === 'en' ? 0 : 1]; }
@@ -176,47 +168,6 @@ var STEPS = [
    // OTP verification temporarily not required to continue — re-enable the
    // f-otp check below once MSG91 sending is confirmed working end to end.
    // if (!state.mobileVerified || state.verifiedMobile !== mobile) errs.push('f-otp');
-   return errs;
-  }
-},
-{
-  title: ['Your business', 'आपका व्यापार'],
-  html: function(){
-   var gstinVal = (state.fields['f-gst'] || '').toUpperCase();
-   var verified = state.gstinVerified && state.verifiedGstin === gstinVal;
-   var pending = state.gstinCheck;
-   return ''
-   + lab(['GST number', 'जीएसटी नंबर'], true)
-   + gstinInput()
-   + '<div id="gstinStatus" style="font-size:11px;margin:6px 0 12px;min-height:14px;color:var(--avocado)"></div>'
-   + '<div id="gstinConfirmCard"' + (pending ? '' : ' style="display:none"') + '>'
-   + (pending ? card('', [
-       '<strong>Is this your firm?</strong><br>' + escAttr(pending.legalName)
-         + (pending.tradeName ? ' <span style="color:var(--slate)">(' + escAttr(pending.tradeName) + ')</span>' : ''),
-       '<strong>क्या यह आपकी फर्म है?</strong><br>' + escAttr(pending.legalName)
-         + (pending.tradeName ? ' <span style="color:var(--slate)">(' + escAttr(pending.tradeName) + ')</span>' : '')
-     ]) : '')
-   + (pending ? '<div class="chips" style="justify-content:center;margin:-6px 0 14px">'
-       + '<span class="chip" onclick="acceptGstinName()">' + (lang==='en' ? 'Yes' : 'हाँ') + '</span>'
-       + '<span class="chip" onclick="rejectGstinName()">' + (lang==='en' ? 'No' : 'नहीं') + '</span>'
-       + '</div>' : '')
-   + '</div>'
-   + '<div id="gstinVerifiedCard"' + (verified ? '' : ' style="display:none"') + '>'
-   + card('', ['<strong>GSTIN verified.</strong> ' + escAttr(state.gstinLegalName || ''),
-               '<strong>जीएसटी सत्यापित।</strong> ' + escAttr(state.gstinLegalName || '')])
-   + '</div>'
-   + lab(['Firm name', 'फर्म का नाम'], true)
-   + txt('f-firmname', 'text', '', ' placeholder="' + (lang==='en' ? 'As per your GST records' : 'आपके जीएसटी रिकॉर्ड के अनुसार') + '"')
-   + lab(['Name to print on your signboard', 'साइनबोर्ड पर छपने वाला नाम'], true)
-   + txt('f-signboard', 'text', 'Sunita Bedding House');
-  },
-  validate: function(){
-   var errs = [];
-   // GSTIN format + firm name temporarily not required to continue — re-enable
-   // once GSTIN verification is confirmed working end to end.
-   // if (!GSTIN_RE.test(getVal('f-gst').toUpperCase())) errs.push('f-gst');
-   // if (!getVal('f-firmname')) errs.push('f-firmname');
-   if (!getVal('f-signboard')) errs.push('f-signboard');
    return errs;
   }
 },
@@ -296,22 +247,6 @@ var STEPS = [
   }
 },
 {
-  title: ['Documents', 'दस्तावेज़'],
-  html: function(){ return ''
-   + doc('pan',   ['PAN card', 'पैन कार्ड'])
-   + doc('disp',  ['Your mattress display', 'आपका गद्दा प्रदर्शन'])
-   + '<p style="font-size:11px;color:var(--sand);line-height:1.6;margin:10px 0 20px">'
-   + (lang==='en' ? 'Take a new photo or choose one from your gallery or files for each document. Both photos are required.'
-                  : 'हर दस्तावेज़ के लिए नई फोटो लें या गैलरी/फ़ाइलों से चुनें। दोनों फोटो ज़रूरी हैं।') + '</p>';
-  },
-  validate: function(){
-   var keys = ['pan','disp'];
-   var errs = [];
-   for (var i = 0; i < keys.length; i++){ if (!state.docs[keys[i]]) errs.push('doc-' + keys[i]); }
-   return errs;
-  }
-},
-{
   title: ['The Gallery commitment', 'गैलरी प्रतिबद्धता'],
   html: function(){ return ''
    + '<div class="hero"><b>' + (lang==='en' ? 'Qualify at 8 pairs per month.' : '8 जोड़े प्रति माह पर योग्य बनें।') + '</b><p>'
@@ -340,7 +275,7 @@ var STEPS = [
   title: ['Review and confirm', 'जाँचें और पुष्टि करें'],
   html: function(){ return ''
    + '<div class="summary">Sunita Bedding House<br><em>Ramesh Gupta · 98765 43210<br>Hazratganj, Lucknow 226001<br>'
-   + (lang==='en' ? '8 pairs a month · 6 documents attached' : '8 जोड़े प्रति माह · 6 दस्तावेज़ संलग्न') + '</em></div>'
+   + (lang==='en' ? '8 pairs a month' : '8 जोड़े प्रति माह') + '</em></div>'
    + lab(['You must tick this to finish', 'पूरा करने के लिए इसे टिक करना ज़रूरी है'], true)
    + '<div class="declare' + (state.confirmed ? ' on' : '') + '" onclick="toggleConfirm()"><div class="cbox"></div><div class="dtext">'
    + (lang==='en'
@@ -376,19 +311,6 @@ function chips(group, items, selected){
   }
   return h + '</div>';
 }
-function doc(key, pair){
-  var done = !!state.docs[key];
-  return '<div class="doc' + (done ? ' done' : '') + '" id="doc-' + key + '">'
-       + '<div class="icn"></div>' + pair[lang==='en'?0:1]
-       + '<span class="tick">' + (done ? '✓' : '') + '</span>'
-       + '<div class="docactions">'
-       + '<span class="doclink" onclick="triggerShoot(\'' + key + '\',true)">' + (lang==='en' ? 'Take photo' : 'फोटो लें') + '</span>'
-       + '<span class="doclink" onclick="triggerShoot(\'' + key + '\',false)">' + (lang==='en' ? 'Choose from gallery/files' : 'गैलरी/फ़ाइलों से चुनें') + '</span>'
-       + '</div>'
-       + '<input type="file" accept="image/*" capture="environment" id="file-cam-' + key + '" style="display:none" onchange="fileChosen(\'' + key + '\')">'
-       + '<input type="file" accept="image/*" id="file-lib-' + key + '" style="display:none" onchange="fileChosen(\'' + key + '\')">'
-       + '</div>';
-}
 function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
@@ -407,18 +329,11 @@ function otpInput(){
        + ' placeholder="••••••" oninput="onOtpInput(this)" onblur="onOtpBlur(this)"'
        + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();verifyOtpNow();}">';
 }
-function gstinInput(){
-  var v = state.fields.hasOwnProperty('f-gst') ? state.fields['f-gst'] : '';
-  return '<input type="text" id="f-gst" value="' + escAttr(v) + '" maxlength="15"'
-       + ' placeholder="09ABCDE1234F2Z5" style="letter-spacing:.06em;text-transform:uppercase"'
-       + ' oninput="onGstinInput(this)">';
-}
 function getVal(id){
   var el = document.getElementById(id);
   return el ? el.value.trim() : '';
 }
 function digitsOnly(s){ return s.replace(/\D/g, ''); }
-var GSTIN_RE = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 function onField(el){
   state.fields[el.id] = el.value;
   el.classList.remove('err');
@@ -538,90 +453,13 @@ function verifyOtpNow(){
   });
 }
 
-function setGstinStatus(msg, isErr){
-  var el = document.getElementById('gstinStatus');
-  if (el){ el.textContent = msg || ''; el.style.color = isErr ? '#C0392B' : 'var(--avocado)'; }
-}
-function clearGstinVerification(){
-  state.gstinVerified = false;
-  state.verifiedGstin = null;
-  state.gstinLegalName = null;
-  state.gstinCheck = null;
-  var cc = document.getElementById('gstinConfirmCard');
-  if (cc) cc.style.display = 'none';
-  var vc = document.getElementById('gstinVerifiedCard');
-  if (vc) vc.style.display = 'none';
-  setGstinStatus('', false);
-  saveProgress();
-}
-function onGstinInput(el){
-  var raw = el.value.toUpperCase();
-  if (el.value !== raw) el.value = raw;
-  state.fields[el.id] = raw;
-  el.classList.remove('err');
-
-  if (state.gstinCheck || (state.gstinVerified && state.verifiedGstin !== raw)){
-    clearGstinVerification();
-  } else {
-    saveProgress();
-  }
-
-  if (raw.length === 15 && GSTIN_RE.test(raw) && state.verifiedGstin !== raw){
-    verifyGstinNow(raw);
-  } else if (raw.length !== 15 || !GSTIN_RE.test(raw)) {
-    setGstinStatus('', false);
-  }
-}
-function verifyGstinNow(gstin){
-  setGstinStatus(lang==='en' ? 'Checking GSTIN…' : 'जीएसटी जाँचा जा रहा है…', false);
-  fetch('/api/verify-gstin', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ gstin: gstin })
-  }).then(function(r){
-    return r.json().catch(function(){ return {}; }).then(function(data){ return { ok: r.ok, data: data }; });
-  }).then(function(res){
-    if (getVal('f-gst').toUpperCase() !== gstin) return; // stale response, user kept typing
-    if (res.ok && res.data && res.data.verified){
-      state.gstinCheck = { gstin: gstin, legalName: res.data.legalName, tradeName: res.data.tradeName, status: res.data.status };
-      setGstinStatus('', false);
-      render();
-    } else {
-      state.gstinCheck = null;
-      setGstinStatus((res.data && res.data.message) || (lang==='en' ? 'Could not verify this GSTIN.' : 'यह जीएसटी सत्यापित नहीं हो सका।'), true);
-      var gEl = document.getElementById('f-gst');
-      if (gEl) gEl.classList.add('err');
-    }
-  }).catch(function(){
-    setGstinStatus(lang==='en' ? 'Network error. Try again.' : 'नेटवर्क त्रुटि। दोबारा कोशिश करें।', true);
-  });
-}
-function acceptGstinName(){
-  if (!state.gstinCheck) return;
-  var chk = state.gstinCheck;
-  state.gstinVerified = true;
-  state.verifiedGstin = chk.gstin;
-  state.gstinLegalName = chk.legalName;
-  state.fields['f-firmname'] = chk.legalName;
-  state.gstinCheck = null;
-  saveProgress();
-  render();
-}
-function rejectGstinName(){
-  state.gstinCheck = null;
-  setGstinStatus(lang==='en' ? 'Edit the GSTIN, or enter your firm name manually below.' : 'जीएसटी बदलें, या नीचे फर्म का नाम खुद डालें।', false);
-  saveProgress();
-  render();
-}
-
 function saveProgress(){
   try {
     var data = {
       step: step, lang: lang, fields: state.fields,
       confirmed: state.confirmed, unmarried: state.unmarried, accept: state.accept,
       mobileVerified: state.mobileVerified, verifiedMobile: state.verifiedMobile,
-      verifyToken: state.verifyToken, verifyTokenExpiresAt: state.verifyTokenExpiresAt,
-      gstinVerified: state.gstinVerified, verifiedGstin: state.verifiedGstin, gstinLegalName: state.gstinLegalName
+      verifyToken: state.verifyToken, verifyTokenExpiresAt: state.verifyTokenExpiresAt
     };
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
   } catch(e){}
@@ -643,10 +481,6 @@ function loadProgress(){
     state.verifiedMobile = verifyExpired ? null : (data.verifiedMobile || null);
     state.verifyToken = verifyExpired ? null : (data.verifyToken || null);
     state.verifyTokenExpiresAt = verifyExpired ? null : (data.verifyTokenExpiresAt || null);
-    state.gstinVerified = !!data.gstinVerified;
-    state.verifiedGstin = data.verifiedGstin || null;
-    state.gstinLegalName = data.gstinLegalName || null;
-    state.gstinCheck = null;
   } catch(e){}
 }
 
@@ -656,15 +490,6 @@ function pickChip(el, multi){
   var wasOn = el.classList.contains('on');
   for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('on');
   if (!(wasOn && sibs.length === 1)) el.classList.add('on');
-}
-function triggerShoot(key, camera){
-  document.getElementById((camera ? 'file-cam-' : 'file-lib-') + key).click();
-}
-function fileChosen(key){
-  var cam = document.getElementById('file-cam-' + key);
-  var lib = document.getElementById('file-lib-' + key);
-  state.docs[key] = !!((cam.files && cam.files.length) || (lib.files && lib.files.length));
-  render();
 }
 function toggleConfirm(){ state.confirmed = !state.confirmed; render(); }
 function toggleMarried(){ state.unmarried = !state.unmarried; render(); }
@@ -683,9 +508,9 @@ function hideBanner(){
 
 function render(){
   var s = STEPS[step];
-  document.getElementById('stepno').textContent = t('stepof').replace('#', step + 1);
+  document.getElementById('stepno').textContent = t('stepof').replace('#', step + 1).replace('@', STEPS.length);
   document.getElementById('steptitle').textContent = s.title[lang==='en'?0:1];
-  document.getElementById('fill').style.width = ((step + 1) / 8 * 100) + '%';
+  document.getElementById('fill').style.width = ((step + 1) / STEPS.length * 100) + '%';
 
   var last = step === STEPS.length - 1;
   var btn = last
@@ -743,9 +568,8 @@ function finish(){
 function restart(){
   step = 0;
   state = {
-    docs: {}, confirmed: false, unmarried: false, accept: false, fields: {},
-    mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null,
-    gstinVerified: false, verifiedGstin: null, gstinLegalName: null, gstinCheck: null
+    confirmed: false, unmarried: false, accept: false, fields: {},
+    mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
   };
   try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
   render();
