@@ -122,7 +122,8 @@ var lang = 'en';
 var step = 0;
 var state = {
   confirmed: false, unmarried: false, accept: false, fields: {},
-  mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
+  mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null,
+  verifiedPincode: null, pincodeDistrict: null, pincodeState: null
 };
 var PROGRESS_KEY = 'foamicoWizardProgress_v1';
 
@@ -173,7 +174,10 @@ var STEPS = [
 },
 {
   title: ['Owner details', 'मालिक का विवरण'],
-  html: function(){ return ''
+  html: function(){
+   var pincodeVal = state.fields['f-pincode'] || '';
+   var pincodeFound = state.verifiedPincode && state.verifiedPincode === pincodeVal;
+   return ''
    + lab(["Owner's full name", 'मालिक का पूरा नाम'], true)
    + txt('f-ownername', 'text', 'Ramesh Gupta')
    + '<div class="row"><div>' + lab(['Date of birth','जन्म तिथि'], true) + txt('f-dob', 'text', '14 / 03 / 1974') + '</div>'
@@ -184,8 +188,14 @@ var STEPS = [
    + '<div class="row"><div>' + lab(['Alternate Number','वैकल्पिक नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
    + '<div>' + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com') + '</div></div>'
    + lab(['Pincode', 'पिन कोड'], true)
-   + txt('f-pincode', 'text', '226001', ' maxlength="6"')
-   + card('', ['Lucknow · Uttar Pradesh', 'लखनऊ · उत्तर प्रदेश'])
+   + pincodeInput()
+   + '<div id="pincodeStatus" style="font-size:11px;margin:6px 0 12px;min-height:14px;color:var(--avocado)"></div>'
+   + '<div id="pincodeResultCard"' + (pincodeFound ? '' : ' style="display:none"') + '>'
+   + (pincodeFound ? card('', [
+       escAttr(state.pincodeDistrict) + ' · ' + escAttr(state.pincodeState),
+       escAttr(state.pincodeDistrict) + ' · ' + escAttr(state.pincodeState)
+     ]) : '')
+   + '</div>'
    + lab(['Firm Address', 'फर्म का पता'], true)
    + txt('f-address', 'text', '14/3 Rana Pratap Marg')
    + lab(['Landmark', 'पास की पहचान'], true)
@@ -329,6 +339,11 @@ function otpInput(){
        + ' placeholder="••••••" oninput="onOtpInput(this)" onblur="onOtpBlur(this)"'
        + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();verifyOtpNow();}">';
 }
+function pincodeInput(){
+  var v = state.fields.hasOwnProperty('f-pincode') ? state.fields['f-pincode'] : '';
+  return '<input type="text" id="f-pincode" value="' + escAttr(v) + '" maxlength="6" inputmode="numeric"'
+       + ' placeholder="226001" oninput="onPincodeInput(this)">';
+}
 function getVal(id){
   var el = document.getElementById(id);
   return el ? el.value.trim() : '';
@@ -453,13 +468,72 @@ function verifyOtpNow(){
   });
 }
 
+function setPincodeStatus(msg, isErr){
+  var el = document.getElementById('pincodeStatus');
+  if (el){ el.textContent = msg || ''; el.style.color = isErr ? '#C0392B' : 'var(--avocado)'; }
+}
+function clearPincodeLookup(){
+  state.verifiedPincode = null;
+  state.pincodeDistrict = null;
+  state.pincodeState = null;
+  var rc = document.getElementById('pincodeResultCard');
+  if (rc) rc.style.display = 'none';
+  setPincodeStatus('', false);
+  saveProgress();
+}
+function onPincodeInput(el){
+  var raw = digitsOnly(el.value).slice(0, 6);
+  if (el.value !== raw) el.value = raw;
+  state.fields[el.id] = raw;
+  el.classList.remove('err');
+
+  if (state.verifiedPincode && state.verifiedPincode !== raw){
+    clearPincodeLookup();
+  } else {
+    saveProgress();
+  }
+
+  if (raw.length === 6 && state.verifiedPincode !== raw){
+    lookupPincodeNow(raw);
+  } else if (raw.length !== 6) {
+    setPincodeStatus('', false);
+  }
+}
+function lookupPincodeNow(pincode){
+  setPincodeStatus(lang==='en' ? 'Looking up pincode…' : 'पिन कोड खोजा जा रहा है…', false);
+  fetch('/api/lookup-pincode?pincode=' + encodeURIComponent(pincode))
+    .then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(data){ return { ok: r.ok, data: data }; });
+    }).then(function(res){
+      if (digitsOnly(getVal('f-pincode')) !== pincode) return; // stale response, user kept typing
+      if (res.ok && res.data && res.data.found){
+        state.verifiedPincode = pincode;
+        state.pincodeDistrict = res.data.district;
+        state.pincodeState = res.data.state;
+        setPincodeStatus('', false);
+        saveProgress();
+        render();
+      } else {
+        state.verifiedPincode = null;
+        state.pincodeDistrict = null;
+        state.pincodeState = null;
+        setPincodeStatus((res.data && res.data.message) || (lang==='en' ? 'Pincode not found.' : 'पिन कोड नहीं मिला।'), true);
+        var pEl = document.getElementById('f-pincode');
+        if (pEl) pEl.classList.add('err');
+      }
+    }).catch(function(){
+      setPincodeStatus(lang==='en' ? 'Network error. Try again.' : 'नेटवर्क त्रुटि। दोबारा कोशिश करें।', true);
+    });
+}
+
 function saveProgress(){
   try {
     var data = {
       step: step, lang: lang, fields: state.fields,
       confirmed: state.confirmed, unmarried: state.unmarried, accept: state.accept,
       mobileVerified: state.mobileVerified, verifiedMobile: state.verifiedMobile,
-      verifyToken: state.verifyToken, verifyTokenExpiresAt: state.verifyTokenExpiresAt
+      verifyToken: state.verifyToken, verifyTokenExpiresAt: state.verifyTokenExpiresAt,
+      verifiedPincode: state.verifiedPincode, pincodeDistrict: state.pincodeDistrict, pincodeState: state.pincodeState
     };
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
   } catch(e){}
@@ -481,6 +555,9 @@ function loadProgress(){
     state.verifiedMobile = verifyExpired ? null : (data.verifiedMobile || null);
     state.verifyToken = verifyExpired ? null : (data.verifyToken || null);
     state.verifyTokenExpiresAt = verifyExpired ? null : (data.verifyTokenExpiresAt || null);
+    state.verifiedPincode = data.verifiedPincode || null;
+    state.pincodeDistrict = data.pincodeDistrict || null;
+    state.pincodeState = data.pincodeState || null;
   } catch(e){}
 }
 
@@ -569,7 +646,8 @@ function restart(){
   step = 0;
   state = {
     confirmed: false, unmarried: false, accept: false, fields: {},
-    mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null
+    mobileVerified: false, verifiedMobile: null, verifyToken: null, verifyTokenExpiresAt: null,
+    verifiedPincode: null, pincodeDistrict: null, pincodeState: null
   };
   try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
   render();
