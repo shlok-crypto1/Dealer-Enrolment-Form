@@ -3,7 +3,7 @@
 -- It is not applied automatically — nothing in this repo has your project
 -- credentials or the ability to reach your Supabase project.
 
-create table if not exists dealer_registrations (
+create table if not exists foamico_gallery_registrations (
   id bigint generated always as identity primary key,
   created_at timestamptz not null default now(),
   dealer_code text unique,
@@ -45,4 +45,4 @@ create table if not exists dealer_registrations (
 -- exclusively by /api/submit-registration, never sent to the browser) can
 -- read or write it. This is intentional: the client never talks to
 -- Supabase directly, only through that one serverless function.
-alter table dealer_registrations enable row level security;
+alter table foamico_gallery_registrations enable row level security;

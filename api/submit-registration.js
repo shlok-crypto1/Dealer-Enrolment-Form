@@ -119,13 +119,13 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    const inserted = await supabase.from('dealer_registrations').insert(row).select('id, state').single();
+    const inserted = await supabase.from('foamico_gallery_registrations').insert(row).select('id, state').single();
     if (inserted.error) throw inserted.error;
 
     const dealerCode = 'FOA-' + stateAbbr(inserted.data.state) + '-' + String(inserted.data.id).padStart(4, '0');
 
     const updated = await supabase
-      .from('dealer_registrations')
+      .from('foamico_gallery_registrations')
       .update({ dealer_code: dealerCode })
       .eq('id', inserted.data.id);
     if (updated.error) throw updated.error;
