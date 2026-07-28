@@ -650,6 +650,7 @@ function buildSubmissionPayload(){
     mobile: digitsOnly(state.fields['f-mobile'] || ''),
     mobileVerified: !!state.mobileVerified,
     verifiedMobile: state.verifiedMobile || null,
+    verifyToken: state.verifyToken || null,
 
     ownerName: state.fields['f-ownername'] || '',
     dob: state.fields['f-dob'] || '',

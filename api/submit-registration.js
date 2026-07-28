@@ -1,5 +1,6 @@
 const supabaseLib = require('./_lib/supabase');
 const rateLimit = require('./_lib/rateLimit');
+const token = require('./_lib/token');
 
 function digitsOnly(s) {
   return String(s || '').replace(/\D/g, '');
@@ -20,22 +21,6 @@ function clientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
   if (fwd) return String(fwd).split(',')[0].trim();
   return (req.socket && req.socket.remoteAddress) || 'unknown';
-}
-
-// Cosmetic only: makes the dealer code read like "FOA-UP-0148" instead of a
-// raw row id. Falls back to the state name's initials if it's not listed.
-const STATE_ABBR = {
-  'uttar pradesh': 'UP', 'delhi': 'DL', 'maharashtra': 'MH', 'karnataka': 'KA',
-  'tamil nadu': 'TN', 'gujarat': 'GJ', 'rajasthan': 'RJ', 'west bengal': 'WB',
-  'madhya pradesh': 'MP', 'bihar': 'BR', 'punjab': 'PB', 'haryana': 'HR',
-  'telangana': 'TG', 'andhra pradesh': 'AP', 'kerala': 'KL', 'odisha': 'OD',
-  'assam': 'AS', 'jharkhand': 'JH', 'chhattisgarh': 'CG', 'uttarakhand': 'UK'
-};
-function stateAbbr(stateName) {
-  const key = str(stateName).toLowerCase();
-  if (STATE_ABBR[key]) return STATE_ABBR[key];
-  const initials = str(stateName).split(/\s+/).map(function (w) { return w[0] || ''; }).join('').toUpperCase();
-  return initials.slice(0, 2) || 'IN';
 }
 
 function validate(body) {
@@ -85,53 +70,76 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const mobile = digitsOnly(body.mobile);
+
+  // Verify the OTP session token server-side rather than trusting the
+  // client's mobileVerified flag outright. Falls back to false when no/an
+  // invalid token is supplied — matching the wizard, where OTP is
+  // temporarily not required to continue (see index.html step 1 validate()).
+  let mobileVerified = false;
+  if (body.verifyToken) {
+    const payload = token.verify(body.verifyToken);
+    if (payload && payload.verified && digitsOnly(payload.mobile) === mobile) {
+      mobileVerified = true;
+    }
+  }
+
+  // Column names here match the actual deployed schema in Supabase
+  // (public.foamico_gallery_registrations) — see supabase/schema.sql.
+  // dealer_code is intentionally omitted: a BEFORE INSERT trigger
+  // (generate_foamico_dealer_code) fills it in atomically per-state, so
+  // there's no separate insert-then-update race to worry about.
   const row = {
-    mobile: digitsOnly(body.mobile),
-    mobile_verified: !!body.mobileVerified,
-    verified_mobile: body.verifiedMobile ? digitsOnly(body.verifiedMobile) : null,
+    language: str(body.lang) === 'hi' ? 'hi' : 'en',
+    mobile: mobile,
+    mobile_verified: mobileVerified,
 
     owner_name: str(body.ownerName),
-    dob: str(body.dob),
-    unmarried: !!body.unmarried,
-    anniversary: body.unmarried ? null : str(body.anniversary),
-    alt_number: digitsOnly(body.altNumber) || null,
-    email: str(body.email),
+    date_of_birth: str(body.dob),
+    is_unmarried: !!body.unmarried,
+    anniversary_date: body.unmarried ? null : str(body.anniversary),
+    alternate_mobile: digitsOnly(body.altNumber) || null,
+    email: str(body.email).toLowerCase(),
 
     pincode: digitsOnly(body.pincode),
     district: str(body.district) || null,
     state: str(body.state) || null,
-    address: str(body.address),
+    firm_address: str(body.address),
     landmark: str(body.landmark),
 
     shop_size: str(body.shopSize) || null,
-    display_count: toInt(body.displayCount),
+    display_mattress_count: toInt(body.displayCount),
     staff_count: toInt(body.staffCount),
 
     years_in_trade: toInt(body.yearsInTrade),
-    brands: Array.isArray(body.brands) ? body.brands.map(str).filter(Boolean) : [],
+    brands_kept: Array.isArray(body.brands) ? body.brands.map(str).filter(Boolean) : [],
     brands_other: str(body.brandsOther) || null,
-    monthly_volume: str(body.monthlyVolume) || null,
-    monthly_fv_count: toInt(body.monthlyFoamicoVedasleep),
+    monthly_sales_volume: str(body.monthlyVolume) || null,
+    fv_monthly_count: toInt(body.monthlyFoamicoVedasleep),
 
-    gallery_accept: !!body.galleryAccept,
-    confirmed: !!body.confirmed,
-    lang: str(body.lang) || 'en'
+    gallery_commitment_accepted: !!body.galleryAccept,
+    final_declaration_confirmed: !!body.confirmed,
+
+    user_agent: req.headers['user-agent'] || null,
+    ip_address: clientIp(req),
+    raw_payload: body
   };
 
   try {
-    const inserted = await supabase.from('foamico_gallery_registrations').insert(row).select('id, state').single();
+    const inserted = await supabase
+      .from('foamico_gallery_registrations')
+      .insert(row)
+      .select('dealer_code')
+      .single();
+
     if (inserted.error) throw inserted.error;
 
-    const dealerCode = 'FOA-' + stateAbbr(inserted.data.state) + '-' + String(inserted.data.id).padStart(4, '0');
-
-    const updated = await supabase
-      .from('foamico_gallery_registrations')
-      .update({ dealer_code: dealerCode })
-      .eq('id', inserted.data.id);
-    if (updated.error) throw updated.error;
-
-    res.status(200).json({ success: true, dealerCode: dealerCode });
+    res.status(200).json({ success: true, dealerCode: inserted.data.dealer_code });
   } catch (err) {
+    if (err && err.code === '23505') {
+      res.status(409).json({ success: false, message: 'This mobile number is already registered as a Foamico Gallery.' });
+      return;
+    }
     res.status(502).json({ success: false, message: 'Could not save your registration right now. Please try again.' });
   }
 };
