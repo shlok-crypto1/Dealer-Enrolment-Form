@@ -283,14 +283,27 @@ var STEPS = [
 },
 {
   title: ['Review and confirm', 'जाँचें और पुष्टि करें'],
-  html: function(){ return ''
-   + '<div class="summary">Sunita Bedding House<br><em>Ramesh Gupta · 98765 43210<br>Hazratganj, Lucknow 226001<br>'
-   + (lang==='en' ? '8 pairs a month' : '8 जोड़े प्रति माह') + '</em></div>'
+  html: function(){
+   var ownerDisp = state.fields['f-ownername'] || '';
+   var mobileDisp = state.fields['f-mobile'] || '';
+   var addrDisp = state.fields['f-address'] || '';
+   var landmarkDisp = state.fields['f-landmark'] || '';
+   var pinDisp = state.fields['f-pincode'] || '';
+   var locationLine = [state.pincodeDistrict, state.pincodeState].filter(function(v){ return v; }).join(', ');
+   if (pinDisp) locationLine = (locationLine ? locationLine + ' ' : '') + pinDisp;
+   var fvCount = state.fields['f-fv'] || '';
+   var commitLine = fvCount
+     ? (lang==='en' ? (fvCount + ' pairs a month') : (fvCount + ' जोड़े प्रति माह'))
+     : (lang==='en' ? 'your monthly commitment' : 'आपकी मासिक प्रतिबद्धता');
+   return ''
+   + '<div class="summary">' + escAttr(ownerDisp) + '<br><em>' + escAttr(mobileDisp) + '<br>'
+   + escAttr(addrDisp) + (landmarkDisp ? (', ' + escAttr(landmarkDisp)) : '') + '<br>'
+   + escAttr(locationLine) + '<br>' + escAttr(commitLine) + '</em></div>'
    + lab(['You must tick this to finish', 'पूरा करने के लिए इसे टिक करना ज़रूरी है'], true)
    + '<div class="declare' + (state.confirmed ? ' on' : '') + '" onclick="toggleConfirm()"><div class="cbox"></div><div class="dtext">'
    + (lang==='en'
-      ? 'I confirm the details above are correct, accept Foamico trade terms and pricing, and commit to 8 pairs a month.'
-      : 'मैं पुष्टि करता हूँ कि ऊपर दी गई जानकारी सही है, फोमिको की व्यापार शर्तें और मूल्य स्वीकार करता हूँ, और हर महीने 8 जोड़े की प्रतिबद्धता करता हूँ।')
+      ? 'I confirm the details above are correct, accept Foamico trade terms and pricing, and commit to ' + escAttr(commitLine) + '.'
+      : 'मैं पुष्टि करता हूँ कि ऊपर दी गई जानकारी सही है, फोमिको की व्यापार शर्तें और मूल्य स्वीकार करता हूँ, और ' + escAttr(commitLine) + ' की प्रतिबद्धता करता हूँ।')
    + '</div></div>'
    + '<p style="font-size:10.5px;color:var(--sand);line-height:1.6;margin-bottom:14px">'
    + (lang==='en' ? 'Trade terms v2.1 · recorded with your verified number, time, location and device.'
@@ -331,8 +344,16 @@ function escAttr(s){
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 }
 function txt(id, type, dflt, extra){
-  var v = state.fields.hasOwnProperty(id) ? state.fields[id] : dflt;
-  return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '" oninput="onField(this)"' + (extra || '') + '>';
+  // dflt is a placeholder hint, not a real value — a form that starts
+  // pre-filled with demo text lets someone tab through without typing
+  // anything: client-side validation reads the real DOM value (which
+  // shows the demo text and passes), but state.fields[id] never gets
+  // set because oninput only fires on an actual edit, so the eventual
+  // submission goes out with that field blank.
+  var v = state.fields.hasOwnProperty(id) ? state.fields[id] : '';
+  var hasOwnPlaceholder = extra && /placeholder=/.test(extra);
+  var placeholderAttr = (!hasOwnPlaceholder && dflt) ? ' placeholder="' + escAttr(dflt) + '"' : '';
+  return '<input type="' + type + '" id="' + id + '" value="' + escAttr(v) + '"' + placeholderAttr + ' oninput="onField(this)"' + (extra || '') + '>';
 }
 function mobileInput(){
   var v = state.fields.hasOwnProperty('f-mobile') ? state.fields['f-mobile'] : '';
@@ -717,6 +738,8 @@ function finish(){
 function showDoneScreen(dealerCode){
   var code = dealerCode || 'FOA-PENDING';
   var firstName = (state.fields['f-ownername'] || '').trim().split(/\s+/)[0] || '';
+  var dispCount = parseInt(state.fields['f-dispcount'], 10);
+  if (!Number.isFinite(dispCount) || dispCount < 0) dispCount = 7;
   document.getElementById('stepno').textContent = lang==='en' ? 'Enrolled' : 'दर्ज हुआ';
   document.getElementById('steptitle').textContent = lang==='en' ? 'Welcome to Foamico Gallery' : 'फोमिको गैलरी में स्वागत है';
   document.getElementById('fill').style.width = '100%';
@@ -728,8 +751,8 @@ function showDoneScreen(dealerCode){
       : 'यह आपका डीलर कोड है। गैलरी से जुड़े किसी भी सवाल के लिए इसे रखें।') + '</p>'
   + '<div class="wa"><span>' + (lang==='en' ? 'WhatsApp · just now' : 'व्हाट्सएप · अभी') + '</span><br>'
   + (lang==='en'
-      ? 'Welcome, ' + escAttr(firstName) + ' ji. Your Foamico Gallery is registered as ' + escAttr(code) + '.<br><br>Our team will call you within 48 hours to say hello and check a few details.<br><br>Your branding kit and 7 display mattresses arrive within 14 days.'
-      : 'नमस्ते ' + escAttr(firstName) + ' जी। आपकी फोमिको गैलरी ' + escAttr(code) + ' के रूप में दर्ज हो गई है।<br><br>हमारी टीम 48 घंटे में आपसे बात करने और कुछ जानकारी जाँचने के लिए कॉल करेगी।<br><br>आपकी ब्रांडिंग किट और 7 डिस्प्ले गद्दे 14 दिन में पहुँचेंगे।')
+      ? 'Welcome, ' + escAttr(firstName) + ' ji. Your Foamico Gallery is registered as ' + escAttr(code) + '.<br><br>Our team will call you within 48 hours to say hello and check a few details.<br><br>Your branding kit and ' + dispCount + ' display mattresses arrive within 14 days.'
+      : 'नमस्ते ' + escAttr(firstName) + ' जी। आपकी फोमिको गैलरी ' + escAttr(code) + ' के रूप में दर्ज हो गई है।<br><br>हमारी टीम 48 घंटे में आपसे बात करने और कुछ जानकारी जाँचने के लिए कॉल करेगी।<br><br>आपकी ब्रांडिंग किट और ' + dispCount + ' डिस्प्ले गद्दे 14 दिन में पहुँचेंगे।')
   + '</div>'
   + '<button class="cta" style="margin-top:18px" onclick="restart()">'
   + (lang==='en' ? 'Start again' : 'फिर से शुरू करें') + '</button></div>';

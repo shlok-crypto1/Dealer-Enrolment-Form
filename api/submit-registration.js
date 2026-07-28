@@ -58,6 +58,7 @@ module.exports = async function handler(req, res) {
 
   const errs = validate(body);
   if (errs.length) {
+    console.error('submit-registration validation failed:', errs.join(','));
     res.status(400).json({ success: false, message: 'Please check the submitted details.', fields: errs });
     return;
   }
