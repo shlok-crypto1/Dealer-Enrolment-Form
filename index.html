@@ -172,7 +172,9 @@ var STEPS = [
    var errs = [];
    var mobile = digitsOnly(getVal('f-mobile'));
    if (mobile.length !== 10){ errs.push('f-mobile'); return errs; }
-   if (!state.mobileVerified || state.verifiedMobile !== mobile) errs.push('f-otp');
+   // OTP verification temporarily not required to continue — re-enable the
+   // f-otp check below once MSG91 sending is confirmed working end to end.
+   // if (!state.mobileVerified || state.verifiedMobile !== mobile) errs.push('f-otp');
    return errs;
   }
 },
