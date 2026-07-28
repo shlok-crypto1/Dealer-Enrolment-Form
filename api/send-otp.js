@@ -5,6 +5,8 @@ function digitsOnly(s) {
   return String(s || '').replace(/\D/g, '');
 }
 
+const otpLimiter = rateLimit.createLimiter(10 * 60 * 1000, 3);
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ sent: false, message: 'Method not allowed' });
@@ -22,7 +24,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const rl = rateLimit.checkAndRecord(mobile);
+  const rl = otpLimiter(mobile);
   if (!rl.allowed) {
     res.status(429).json({
       sent: false,
