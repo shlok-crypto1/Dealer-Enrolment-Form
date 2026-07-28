@@ -313,10 +313,16 @@ function rwd(num, titlePair, descPair){
 function chips(group, items, selected){
   var multi = selected === -2;
   var preset = { brands: [0,1,4] };
+  var stored = state.fields[group];
   var h = '<div class="chips" data-group="' + group + '">';
   for (var i = 0; i < items.length; i++){
-    var on = multi ? (preset[group] || []).indexOf(i) > -1 : i === selected;
-    h += '<span class="chip' + (on ? ' on' : '') + '" onclick="pickChip(this,' + multi + ')">'
+    var on;
+    if (stored !== undefined){
+      on = multi ? (Array.isArray(stored) && stored.indexOf(items[i][0]) > -1) : stored === items[i][0];
+    } else {
+      on = multi ? (preset[group] || []).indexOf(i) > -1 : i === selected;
+    }
+    h += '<span class="chip' + (on ? ' on' : '') + '" data-value="' + escAttr(items[i][0]) + '" onclick="pickChip(this,' + multi + ')">'
        + items[i][lang==='en'?0:1] + '</span>';
   }
   return h + '</div>';
@@ -562,11 +568,28 @@ function loadProgress(){
 }
 
 function pickChip(el, multi){
-  if (multi) { el.classList.toggle('on'); return; }
-  var sibs = el.parentNode.children;
-  var wasOn = el.classList.contains('on');
-  for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('on');
-  if (!(wasOn && sibs.length === 1)) el.classList.add('on');
+  var container = el.parentNode;
+  if (multi) {
+    el.classList.toggle('on');
+  } else {
+    var sibs = container.children;
+    var wasOn = el.classList.contains('on');
+    for (var i = 0; i < sibs.length; i++) sibs[i].classList.remove('on');
+    if (!(wasOn && sibs.length === 1)) el.classList.add('on');
+  }
+
+  var group = container.getAttribute('data-group');
+  if (group){
+    var onEls = container.querySelectorAll('.chip.on');
+    if (multi){
+      var vals = [];
+      for (var j = 0; j < onEls.length; j++) vals.push(onEls[j].getAttribute('data-value'));
+      state.fields[group] = vals;
+    } else {
+      state.fields[group] = onEls.length ? onEls[0].getAttribute('data-value') : null;
+    }
+    saveProgress();
+  }
 }
 function toggleConfirm(){ state.confirmed = !state.confirmed; render(); }
 function toggleMarried(){ state.unmarried = !state.unmarried; render(); }
@@ -622,22 +645,90 @@ function next(){
 }
 function prev(){ if (step > 0){ step--; render(); window.scrollTo(0,0); } }
 
+function buildSubmissionPayload(){
+  return {
+    mobile: digitsOnly(state.fields['f-mobile'] || ''),
+    mobileVerified: !!state.mobileVerified,
+    verifiedMobile: state.verifiedMobile || null,
+
+    ownerName: state.fields['f-ownername'] || '',
+    dob: state.fields['f-dob'] || '',
+    unmarried: !!state.unmarried,
+    anniversary: state.unmarried ? null : (state.fields['f-anniv'] || ''),
+    altNumber: state.fields['f-altnum'] || '',
+    email: state.fields['f-email'] || '',
+
+    pincode: state.fields['f-pincode'] || '',
+    district: state.pincodeDistrict || null,
+    state: state.pincodeState || null,
+    address: state.fields['f-address'] || '',
+    landmark: state.fields['f-landmark'] || '',
+
+    shopSize: state.fields['size'] || null,
+    displayCount: state.fields['f-dispcount'] || '',
+    staffCount: state.fields['f-staff'] || '',
+
+    yearsInTrade: state.fields['f-years'] || '',
+    brands: state.fields['brands'] || [],
+    brandsOther: state.fields['f-brandsother'] || '',
+    monthlyVolume: state.fields['vol'] || null,
+    monthlyFoamicoVedasleep: state.fields['f-fv'] || '',
+
+    galleryAccept: !!state.accept,
+    confirmed: !!state.confirmed,
+    lang: lang
+  };
+}
+
 function finish(){
   if (!state.confirmed) return;
-  try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
+  var btn = document.querySelector('#body .cta');
+  if (btn){ btn.disabled = true; btn.textContent = lang==='en' ? 'Submitting…' : 'जमा हो रहा है…'; }
+  hideBanner();
+
+  fetch('/api/submit-registration', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(buildSubmissionPayload())
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(data){ return { ok: r.ok, data: data }; });
+  }).then(function(res){
+    if (!res.ok || !res.data || !res.data.success){
+      if (btn){ btn.disabled = false; btn.textContent = lang==='en' ? 'Submit registration' : 'पंजीकरण जमा करें'; }
+      var b = document.getElementById('errbanner');
+      if (b){
+        b.textContent = (res.data && res.data.message) || (lang==='en' ? 'Could not submit right now. Please try again.' : 'अभी जमा नहीं हो सका। कृपया दोबारा कोशिश करें।');
+        b.classList.remove('hidden');
+      }
+      return;
+    }
+    try { localStorage.removeItem(PROGRESS_KEY); } catch(e){}
+    showDoneScreen(res.data.dealerCode);
+  }).catch(function(){
+    if (btn){ btn.disabled = false; btn.textContent = lang==='en' ? 'Submit registration' : 'पंजीकरण जमा करें'; }
+    var b = document.getElementById('errbanner');
+    if (b){
+      b.textContent = lang==='en' ? 'Network error. Please try again.' : 'नेटवर्क त्रुटि। कृपया दोबारा कोशिश करें।';
+      b.classList.remove('hidden');
+    }
+  });
+}
+function showDoneScreen(dealerCode){
+  var code = dealerCode || 'FOA-PENDING';
+  var firstName = (state.fields['f-ownername'] || '').trim().split(/\s+/)[0] || '';
   document.getElementById('stepno').textContent = lang==='en' ? 'Enrolled' : 'दर्ज हुआ';
   document.getElementById('steptitle').textContent = lang==='en' ? 'Welcome to Foamico Gallery' : 'फोमिको गैलरी में स्वागत है';
   document.getElementById('fill').style.width = '100%';
   document.getElementById('body').innerHTML =
     '<div class="done-wrap"><div class="done-ring"></div>'
-  + '<h4>' + (lang==='en' ? 'FOA-UP-LKO-0147' : 'FOA-UP-LKO-0147') + '</h4>'
+  + '<h4>' + escAttr(code) + '</h4>'
   + '<p>' + (lang==='en'
       ? 'Your dealer code. Keep it for any question about your Gallery.'
       : 'यह आपका डीलर कोड है। गैलरी से जुड़े किसी भी सवाल के लिए इसे रखें।') + '</p>'
   + '<div class="wa"><span>' + (lang==='en' ? 'WhatsApp · just now' : 'व्हाट्सएप · अभी') + '</span><br>'
   + (lang==='en'
-      ? 'Welcome, Ramesh ji. Your Foamico Gallery is registered as FOA-UP-LKO-0147.<br><br>Our team will call you within 48 hours to say hello and check a few details.<br><br>Your branding kit and 7 display mattresses arrive within 14 days.'
-      : 'नमस्ते रमेश जी। आपकी फोमिको गैलरी FOA-UP-LKO-0147 के रूप में दर्ज हो गई है।<br><br>हमारी टीम 48 घंटे में आपसे बात करने और कुछ जानकारी जाँचने के लिए कॉल करेगी।<br><br>आपकी ब्रांडिंग किट और 7 डिस्प्ले गद्दे 14 दिन में पहुँचेंगे।')
+      ? 'Welcome, ' + escAttr(firstName) + ' ji. Your Foamico Gallery is registered as ' + escAttr(code) + '.<br><br>Our team will call you within 48 hours to say hello and check a few details.<br><br>Your branding kit and 7 display mattresses arrive within 14 days.'
+      : 'नमस्ते ' + escAttr(firstName) + ' जी। आपकी फोमिको गैलरी ' + escAttr(code) + ' के रूप में दर्ज हो गई है।<br><br>हमारी टीम 48 घंटे में आपसे बात करने और कुछ जानकारी जाँचने के लिए कॉल करेगी।<br><br>आपकी ब्रांडिंग किट और 7 डिस्प्ले गद्दे 14 दिन में पहुँचेंगे।')
   + '</div>'
   + '<button class="cta" style="margin-top:18px" onclick="restart()">'
   + (lang==='en' ? 'Start again' : 'फिर से शुरू करें') + '</button></div>';
