@@ -186,8 +186,7 @@ var STEPS = [
      + txt('f-anniv', 'date', '', state.unmarried ? ' disabled' : '') + '</div></div>'
    + '<div class="chips" id="marriedGroup" style="justify-content:center">'
    + '<span class="chip' + (state.unmarried ? ' on' : '') + '" onclick="toggleMarried()">' + (lang==='en'?'Unmarried':'अविवाहित') + '</span></div>'
-   + '<div class="row"><div>' + lab(['Alternate Number','वैकल्पिक नंबर'], false) + txt('f-altnum', 'tel', '99887 76655') + '</div>'
-   + '<div>' + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com') + '</div></div>'
+   + lab(['Email','ईमेल'], true) + txt('f-email', 'email', 'ramesh.gupta@example.com')
    + lab(['Pincode', 'पिन कोड'], true)
    + pincodeInput()
    + '<div id="pincodeStatus" style="font-size:11px;margin:2px 0 6px;min-height:14px;color:var(--avocado)"></div>'
@@ -220,9 +219,9 @@ var STEPS = [
    + lab(['Size of your shop', 'दुकान का आकार'], false)
    + chips('size', [['Under 200','200 से कम'],['200–500','200–500'],['500–1000','500–1000'],['1000+ sq ft','1000+ वर्ग फुट']], -1)
    + lab(['How many Display Mattresses do you require?', 'आपको कितने डिस्प्ले गद्दे चाहिए?'], true)
-   + txt('f-dispcount', 'number', '7', ' min="0" max="7" step="1"')
+   + txt('f-dispcount', 'number', '7', ' min="0" max="7" step="1" inputmode="numeric" placeholder="1-7"')
    + lab(['How many mattress salesperson work here?', 'यहाँ कितने गद्दा सेल्सपर्सन काम करते हैं?'], true)
-   + txt('f-staff', 'number', '2', ' min="0" step="1"');
+   + txt('f-staff', 'number', '2', ' min="0" step="1" inputmode="numeric" placeholder="Number of Mattress Salespersons"');
   },
   validate: function(){
    var errs = [];
@@ -234,25 +233,31 @@ var STEPS = [
 },
 {
   title: ['Your trade', 'आपका कारोबार'],
-  html: function(){ return ''
+  html: function(){
+   var brandsSel = state.fields['brands'] || [];
+   var localSelected = brandsSel.indexOf('Local') > -1;
+   return ''
    + lab(['Years in the mattress trade', 'गद्दे के कारोबार में कितने साल'], true)
-   + txt('f-years', 'number', '6', ' min="0" step="1"')
+   + txt('f-years', 'number', '6', ' min="0" step="1" inputmode="numeric" placeholder="Years in the mattress trade"')
    + lab(['Which brands do you keep?', 'आप कौन से ब्रांड रखते हैं?'], false)
    + chips('brands', [['Sleepwell','स्लीपवेल'],['Kurlon','कुर्लऑन'],['Duroflex','ड्यूरोफ्लेक्स'],['Peps','पेप्स'],
                       ['Springfit','स्प्रिंगफिट'],['Centuary','सेंचुरी'],['Nilkamal','नीलकमल'],['Wakefit','वेकफिट'],
-                      ['Sleepyhead','स्लीपीहेड'],['Coirfit','कॉयरफिट'],['Repose','रिपोज़'],['Restolex','रेस्टोलेक्स'],
-                      ['King Koil','किंग कॉयल'],['Springwel','स्प्रिंगवेल'],['Livpure','लिवप्योर'],['Emma','एम्मा'],
-                      ['Boston','बोस्टन'],['Local','लोकल']], -2)
-   + lab(['Any other brand?', 'कोई अन्य ब्रांड?'], false)
+                      ['Coirfit','कॉयरफिट'],['Repose','रिपोज़'],['Restolex','रेस्टोलेक्स'],
+                      ['King Koil','किंग कॉयल'],['Springwel','स्प्रिंगवेल'],['Serta','सर्टा'],
+                      ['Local','लोकल']], -2)
+   + lab(['Any other brand?', 'कोई अन्य ब्रांड?'], localSelected)
    + txt('f-brandsother', 'text', '')
-   + lab(['Mattress pairs sold in a month', 'महीने में बिकने वाले गद्दों के जोड़े'], false)
-   + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], -1)
+   + lab(['Mattress pairs sold in a month', 'महीने में बिकने वाले गद्दों के जोड़े'], true)
+   + '<div id="volGroup">' + chips('vol', [['Under 10','10 से कम'],['10–25','10–25'],['25–50','25–50'],['50+','50+']], -1) + '</div>'
    + lab(['How many Foamico and VedaSleep mattresses do you sell in a month?', 'आप महीने में कितने फोमिको और वेदस्लीप गद्दे बेचते हैं?'], true)
-   + txt('f-fv', 'number', '4', ' min="0" step="1"');
+   + txt('f-fv', 'number', '4', ' min="0" step="1" inputmode="numeric" placeholder="in pairs"');
   },
   validate: function(){
    var errs = [];
    if (!/^\d+$/.test(getVal('f-years'))) errs.push('f-years');
+   var brandsSel = state.fields['brands'] || [];
+   if (brandsSel.indexOf('Local') > -1 && !getVal('f-brandsother')) errs.push('f-brandsother');
+   if (!state.fields['vol']) errs.push('volGroup');
    if (!/^\d+$/.test(getVal('f-fv'))) errs.push('f-fv');
    return errs;
   }
@@ -606,6 +611,7 @@ function pickChip(el, multi){
       state.fields[group] = onEls.length ? onEls[0].getAttribute('data-value') : null;
     }
     saveProgress();
+    render();
   }
 }
 function toggleConfirm(){ state.confirmed = !state.confirmed; render(); }
@@ -673,7 +679,6 @@ function buildSubmissionPayload(){
     dob: state.fields['f-dob'] || '',
     unmarried: !!state.unmarried,
     anniversary: state.unmarried ? null : (state.fields['f-anniv'] || ''),
-    altNumber: state.fields['f-altnum'] || '',
     email: state.fields['f-email'] || '',
 
     pincode: state.fields['f-pincode'] || '',
